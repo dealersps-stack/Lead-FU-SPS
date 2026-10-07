@@ -1,0 +1,680 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0d1b3d">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Leads SPS">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:light}[hidden]{display:none!important}</style>
+<title>Kalkulator Leads SPS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+/* Layout: aplikasi satu kolom ala HP. Bilah judul menempel di atas, tiga tab di bawah (Kalkulator, Leads, Info). */
+:root{
+  --bg:#eef1f6; --surface:#ffffff; --ink:#0d1b3d; --muted:#56637f; --line:#d3daea; --soft:#e5eaf5;
+  --bar:#0d1b3d; --bar-ink:#ffffff; --accent:#cf2128; --accent-ink:#ffffff;
+  --good:#0f7a57; --warn:#a45f00; --crit:#c0262d; --info:#2456c7;
+  --good-bg:#dff3ea; --warn-bg:#fdecd0; --crit-bg:#fbe0e1; --info-bg:#e1eafb;
+  --f-display:'Barlow Condensed','Arial Narrow',sans-serif;
+  --f-body:'IBM Plex Sans',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  --f-num:'IBM Plex Mono',ui-monospace,Menlo,Consolas,monospace;
+  --shadow:0 1px 2px rgba(13,27,61,.08),0 4px 14px rgba(13,27,61,.06);
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#0a1228; --surface:#121c3a; --ink:#eef2fb; --muted:#9facc9; --line:#27345c; --soft:#1a2750;
+  --bar:#0e1731; --bar-ink:#ffffff; --accent:#ff6064; --accent-ink:#1d0709;
+  --good:#53d4a1; --warn:#f2b45a; --crit:#ff8a8e; --info:#8fb0ff;
+  --good-bg:#12392e; --warn-bg:#40300f; --crit-bg:#451a1d; --info-bg:#1b2c5c;
+  --shadow:0 1px 2px rgba(0,0,0,.4); color-scheme:dark; } }
+:root[data-theme="dark"]{
+  --bg:#0a1228; --surface:#121c3a; --ink:#eef2fb; --muted:#9facc9; --line:#27345c; --soft:#1a2750;
+  --bar:#0e1731; --bar-ink:#ffffff; --accent:#ff6064; --accent-ink:#1d0709;
+  --good:#53d4a1; --warn:#f2b45a; --crit:#ff8a8e; --info:#8fb0ff;
+  --good-bg:#12392e; --warn-bg:#40300f; --crit-bg:#451a1d; --info-bg:#1b2c5c;
+  --shadow:0 1px 2px rgba(0,0,0,.4); color-scheme:dark; }
+
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.45;-webkit-text-size-adjust:100%}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:3px solid var(--info);outline-offset:2px}
+.app{display:flex;flex-direction:column;height:100%;max-width:600px;margin:0 auto;background:var(--bg)}
+header.top{flex:none;background:var(--bar);color:var(--bar-ink);padding:10px 16px;display:flex;align-items:center;gap:12px;border-bottom:3px solid var(--accent)}
+header.top .logo{width:42px;height:42px;border-radius:50%;background:#fff;object-fit:cover;flex:none;display:block}
+header.top h1{margin:0;font-family:var(--f-display);font-weight:700;font-size:22px;letter-spacing:.02em;line-height:1.05;text-transform:uppercase}
+header.top small{display:block;font-family:var(--f-body);font-weight:400;font-size:12px;letter-spacing:0;text-transform:none;opacity:.8}
+main{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;padding:16px;display:flex;flex-direction:column;gap:14px}
+nav.tabs{flex:none;display:grid;grid-template-columns:repeat(3,1fr);background:var(--surface);border-top:1px solid var(--line)}
+nav.tabs button{border:0;background:none;padding:10px 4px 9px;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:12.5px;font-weight:500;color:var(--muted);position:relative}
+nav.tabs button svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+nav.tabs button[aria-selected="true"]{color:var(--accent)}
+nav.tabs button[aria-selected="true"]::before{content:'';position:absolute;top:-1px;left:25%;right:25%;height:3px;background:var(--accent);border-radius:0 0 3px 3px}
+nav.tabs .badge{position:absolute;top:5px;left:calc(50% + 8px);min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:var(--accent);color:var(--accent-ink);font-size:11px;font-weight:600;display:grid;place-items:center}
+section.panel[hidden]{display:none!important}
+section.panel{display:flex;flex-direction:column;gap:14px;min-width:0}
+
+h2{margin:0;font-family:var(--f-display);font-weight:700;font-size:15px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px;box-shadow:var(--shadow);min-width:0}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;min-width:0}
+.grow{flex:1;min-width:0}
+.muted{color:var(--muted)}
+.small{font-size:13px}
+.num{font-family:var(--f-num);font-variant-numeric:tabular-nums;font-weight:500}
+label.f{display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--muted);font-weight:500;min-width:0}
+input[type=text],input[type=search],input[type=tel],input[type=number],input[type=date],select,textarea{width:100%;min-height:46px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);font-size:16px}
+textarea{min-height:76px;resize:vertical}
+.btn{border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:10px;min-height:46px;padding:0 14px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;gap:8px;text-decoration:none;font-size:15px}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.btn.wa{background:var(--good);color:#fff;border-color:var(--good)}
+:root[data-theme="dark"] .btn.wa{color:#04281c}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .btn.wa{color:#04281c}}
+.btn.ghost{background:transparent}
+.btn.danger{color:var(--crit);border-color:var(--crit)}
+.btn.sm{min-height:38px;padding:0 12px;font-size:14px}
+.btn[disabled]{opacity:.5}
+.btns{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.btns.one{grid-template-columns:1fr}
+
+/* picker model */
+.picker-list{display:grid;grid-template-columns:1fr 1fr;gap:8px;max-height:236px;overflow-y:auto;padding:2px;margin-top:10px}
+.pick{border:1px solid var(--line);background:var(--bg);border-radius:10px;padding:8px 10px;text-align:left;min-width:0;display:flex;flex-direction:column;gap:1px}
+.pick b{font-family:var(--f-display);font-size:18px;line-height:1.05;text-transform:uppercase;font-weight:700;overflow-wrap:anywhere}
+.pick span{font-family:var(--f-num);font-size:12px;color:var(--muted)}
+.pick[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.pick[aria-pressed="true"] span{color:var(--bg);opacity:.8}
+
+/* label harga */
+.tag{display:flex;flex-direction:column;gap:6px}
+.tag .name{font-family:var(--f-display);font-weight:700;font-size:30px;line-height:1;text-transform:uppercase;overflow-wrap:anywhere}
+.tag .meta{display:flex;gap:18px;flex-wrap:wrap}
+.tag .meta div{display:flex;flex-direction:column}
+.tag .meta small{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.tag .meta b{font-family:var(--f-num);font-size:17px;font-weight:600;font-variant-numeric:tabular-nums}
+
+.dp{display:grid;grid-template-columns:52px 1fr 52px;gap:8px}
+.dp button{font-size:24px;font-weight:600;border-radius:10px;border:1px solid var(--line);background:var(--surface)}
+.dp input{text-align:center;font-family:var(--f-num);font-size:20px;font-weight:600}
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.chip{border:1px solid var(--line);background:var(--surface);border-radius:999px;min-height:36px;padding:0 13px;font-size:14px;font-weight:500;display:inline-flex;align-items:center;gap:6px}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+
+/* tabel angsuran */
+.sched{display:flex;flex-direction:column}
+.sched .r{display:grid;grid-template-columns:64px 1fr;gap:10px;padding:11px 0;border-top:1px solid var(--line);align-items:center}
+.sched .r:first-child{border-top:0}
+.sched .ten{font-family:var(--f-display);font-weight:700;font-size:26px;line-height:1}
+.sched .ten small{display:block;font-family:var(--f-body);font-size:11px;font-weight:500;color:var(--muted);letter-spacing:.04em}
+.sched .amt{text-align:right;min-width:0}
+.sched .amt .big{font-family:var(--f-num);font-weight:600;font-size:21px;font-variant-numeric:tabular-nums}
+.sched .amt .sub{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+.sched .amt .cut{font-size:12px;color:var(--good);font-weight:600}
+.sched .amt s{color:var(--muted)}
+.notice{border-radius:10px;padding:10px 12px;font-size:14px;background:var(--warn-bg);color:var(--warn)}
+.switch{display:flex;align-items:center;gap:10px;font-size:14px}
+.switch input{width:22px;height:22px;accent-color:var(--accent)}
+
+/* leads */
+.lead{display:flex;flex-direction:column;gap:8px}
+.lead .head{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.lead .nm{font-weight:600;font-size:17px;overflow-wrap:anywhere}
+.pill{display:inline-flex;align-items:center;height:24px;padding:0 10px;border-radius:999px;font-size:12px;font-weight:600;background:var(--soft);color:var(--muted);white-space:nowrap}
+.pill.prospek,.pill.testride{background:var(--info-bg);color:var(--info)}
+.pill.hot{background:var(--warn-bg);color:var(--warn)}
+.pill.closing{background:var(--good-bg);color:var(--good)}
+.pill.late{background:var(--crit-bg);color:var(--crit)}
+.pill.today{background:var(--warn-bg);color:var(--warn)}
+.lead .line{font-size:14px;color:var(--muted);overflow-wrap:anywhere}
+.lead .actions{display:flex;gap:8px;flex-wrap:wrap}
+.empty{text-align:center;padding:22px 12px;display:flex;flex-direction:column;gap:10px;align-items:center}
+.empty b{font-family:var(--f-display);font-size:22px;text-transform:uppercase}
+.sample{opacity:.75;border-style:dashed}
+.sample .ex{font-size:11px;letter-spacing:.08em;text-transform:uppercase;font-weight:600;color:var(--muted)}
+
+/* sheet */
+.sheet-wrap{position:fixed;inset:0;background:rgba(5,10,25,.55);z-index:20;display:flex;align-items:flex-end;justify-content:center}
+.sheet-wrap[hidden]{display:none!important}
+.sheet{background:var(--surface);color:var(--ink);width:100%;max-width:600px;max-height:92%;overflow-y:auto;border-radius:16px 16px 0 0;padding:16px 16px calc(16px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:12px}
+.sheet h3{margin:0;font-family:var(--f-display);font-size:24px;text-transform:uppercase;font-weight:700}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.tpl{display:flex;flex-direction:column;gap:2px;text-align:left;border:1px solid var(--line);background:var(--bg);border-radius:10px;padding:10px 12px;width:100%}
+.tpl b{font-size:15px}
+.tpl span{font-size:13px;color:var(--muted);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.toast{position:fixed;left:50%;bottom:calc(76px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:999px;font-size:14px;font-weight:500;z-index:30;max-width:calc(100% - 32px);text-align:center}
+.toast[hidden]{display:none!important}
+.tbl{width:100%;border-collapse:collapse;font-size:14px}
+.tbl th,.tbl td{padding:8px 6px;border-bottom:1px solid var(--line);text-align:right;font-variant-numeric:tabular-nums}
+.tbl th:first-child,.tbl td:first-child{text-align:left}
+.tbl th{font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.scrollx{overflow-x:auto}
+ol.steps{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px;font-size:14.5px}
+textarea.code{font-family:var(--f-num);font-size:13px}
+@media (max-width:380px){.grid2{grid-template-columns:1fr}.picker-list{grid-template-columns:1fr}}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
+</style>
+
+
+</head>
+<body>
+<div class="app" id="app">
+  <header class="top">
+    <img class="logo" alt="Logo SPS Motor" width="42" height="42" src="data:image/jpeg;base64,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">
+    <h1>Kalkulator Leads SPS<small>Estimasi angsuran, catat calon pembeli</small></h1>
+  </header>
+
+  <main id="main">
+    <!-- ============ KALKULATOR ============ -->
+    <section class="panel" id="p-calc" aria-label="Kalkulator angsuran">
+      <div class="card" id="pickcard" hidden>
+        <label class="f" for="q">Cari tipe motor
+          <input id="q" type="search" placeholder="Ketik: beat, vario, scoopy…" autocomplete="off">
+        </label>
+        <div class="picker-list" id="plist" role="list"></div>
+      </div>
+
+      <div class="card tag" id="tagcard"></div>
+
+      <div class="card" style="display:flex;flex-direction:column;gap:10px">
+        <h2>Uang muka (DP)</h2>
+        <div class="dp">
+          <button type="button" id="dpm" aria-label="Kurangi DP Rp100.000">−</button>
+          <input id="dp" type="text" inputmode="numeric" aria-label="DP dalam rupiah" autocomplete="off">
+          <button type="button" id="dpp" aria-label="Tambah DP Rp100.000">+</button>
+        </div>
+        <div class="chips" id="dpchips" role="group" aria-label="DP cepat"></div>
+        <div class="small muted" id="dprange"></div>
+        <div class="notice" id="dpnote" hidden></div>
+      </div>
+
+      <div class="card" style="display:flex;flex-direction:column;gap:6px">
+        <div class="row" style="justify-content:space-between">
+          <h2>Angsuran per bulan</h2>
+          <label class="switch"><input type="checkbox" id="cut"><span id="cutlbl">Pengurang tenor 11 &amp; 23</span></label>
+        </div>
+        <div class="sched" id="sched"></div>
+        <div class="small muted">Estimasi, dapat berubah sesuai ketentuan leasing. S&amp;K berlaku.</div>
+      </div>
+
+      <div class="btns">
+        <button class="btn wa" type="button" id="sendwa">Kirim ke WhatsApp</button>
+        <button class="btn primary" type="button" id="tolead">Simpan jadi lead</button>
+      </div>
+    </section>
+
+    <!-- ============ LEADS ============ -->
+    <section class="panel" id="p-leads" aria-label="Catatan leads" hidden>
+      <div class="row">
+        <button class="btn primary grow" type="button" id="addlead">+ Lead baru</button>
+      </div>
+      <div class="chips" id="lfilter" role="group" aria-label="Filter lead"></div>
+      <input id="lsearch" type="search" placeholder="Cari nama atau nomor" autocomplete="off" aria-label="Cari lead">
+      <div id="llist" style="display:flex;flex-direction:column;gap:10px"></div>
+    </section>
+
+    <!-- ============ INFO ============ -->
+    <section class="panel" id="p-info" aria-label="Info dan pengaturan" hidden>
+      <div class="card" style="display:flex;flex-direction:column;gap:12px">
+        <h2>Pengaturan</h2>
+        <label class="f" for="s-cut">Pengurang angsuran tenor 11 &amp; 23 (Rp per bulan)
+          <input id="s-cut" type="text" inputmode="numeric" autocomplete="off">
+        </label>
+        <label class="f" for="s-dealer">Nama dealer (untuk pesan WhatsApp)
+          <input id="s-dealer" type="text" placeholder="mis. SPS Motor" autocomplete="off">
+        </label>
+        <label class="f" for="s-sales">Nama sales
+          <input id="s-sales" type="text" placeholder="mis. Andi" autocomplete="off">
+        </label>
+        <div class="small muted">Pengurang diambil dari potongan atas PL Reguler MD. Tersimpan di HP ini.</div>
+      </div>
+
+      <div class="card" style="display:flex;flex-direction:column;gap:10px">
+        <h2>Cadangan data lead</h2>
+        <div class="small muted">Lead hanya tersimpan di HP ini. Salin cadangan secara berkala dan simpan ke WhatsApp atau catatan Anda sendiri.</div>
+        <div class="btns">
+          <button class="btn" type="button" id="b-csv">Salin CSV</button>
+          <button class="btn" type="button" id="b-json">Salin cadangan</button>
+        </div>
+        <label class="f" for="b-text">Pulihkan dari cadangan (tempel di sini)
+          <textarea id="b-text" class="code" placeholder='Tempel teks cadangan, lalu tekan "Pulihkan"'></textarea>
+        </label>
+        <div class="btns">
+          <button class="btn" type="button" id="b-restore">Pulihkan</button>
+          <button class="btn danger" type="button" id="b-wipe">Hapus semua lead</button>
+        </div>
+      </div>
+
+      <div class="card" style="display:flex;flex-direction:column;gap:10px">
+        <h2>Potongan max per series</h2>
+        <div class="scrollx"><table class="tbl" id="t-series"></table></div>
+        <div class="small muted">*Potongan atas PL Reguler MD.</div>
+      </div>
+
+      <div class="card" style="display:flex;flex-direction:column;gap:10px">
+        <h2>Subsidi PO</h2>
+        <div class="scrollx"><table class="tbl" id="t-po"></table></div>
+        <div class="small muted">Bayar = DP PO − Subs. Arti kolom Cash dan baris 8% mengikuti tabel sumber.</div>
+      </div>
+
+      <div class="card" style="display:flex;flex-direction:column;gap:8px">
+        <h2>Pasang di HP</h2>
+        <ol class="steps">
+          <li>Buka alamat aplikasi ini di Chrome.</li>
+          <li>Ketuk titik tiga di pojok kanan atas.</li>
+          <li>Pilih <b>Instal aplikasi</b> atau <b>Tambahkan ke layar utama</b>.</li>
+          <li>Ikon muncul di layar utama dan bisa dibuka tanpa internet.</li>
+        </ol>
+      </div>
+
+      <div class="card" style="display:flex;flex-direction:column;gap:6px">
+        <h2>Catatan data</h2>
+        <div class="small muted" id="datanote"></div>
+      </div>
+    </section>
+  </main>
+
+  <nav class="tabs" role="tablist" aria-label="Menu utama">
+    <button type="button" role="tab" id="t-calc" aria-selected="true" data-tab="calc">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M8 7h8M8 12h2M12 12h2M16 12h0M8 16h2M12 16h2M16 16h0"/></svg>Kalkulator</button>
+    <button type="button" role="tab" id="t-leads" aria-selected="false" data-tab="leads">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.6-3.6 3.2-5.5 6.5-5.5s5.9 1.9 6.5 5.5M16 5a3.5 3.5 0 0 1 0 6.5M18.5 14.8c1.7.7 2.7 2.4 3 5.2"/></svg>Leads<span class="badge" id="lbadge" hidden>0</span></button>
+    <button type="button" role="tab" id="t-info" aria-selected="false" data-tab="info">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v5.5M12 7.8h0"/></svg>Info</button>
+  </nav>
+</div>
+
+<!-- form lead -->
+<div class="sheet-wrap" id="sh-lead" hidden>
+  <form class="sheet" id="lform" aria-labelledby="lform-title" novalidate>
+    <h3 id="lform-title">Lead baru</h3>
+    <div class="grid2">
+      <label class="f" for="f-nama">Nama<input id="f-nama" type="text" autocomplete="off"></label>
+      <label class="f" for="f-wa">No WhatsApp<input id="f-wa" type="tel" inputmode="tel" placeholder="0812…" autocomplete="off"></label>
+    </div>
+    <label class="f" for="f-model">Model minat<select id="f-model"></select></label>
+    <div class="grid2">
+      <label class="f" for="f-dp">DP (Rp)<input id="f-dp" type="text" inputmode="numeric" autocomplete="off"></label>
+      <label class="f" for="f-tenor">Tenor (bulan)<select id="f-tenor"></select></label>
+    </div>
+    <div class="grid2">
+      <label class="f" for="f-tipe">Pembayaran<select id="f-tipe"><option>Kredit</option><option>Cash</option></select></label>
+      <label class="f" for="f-sumber">Sumber<select id="f-sumber"></select></label>
+    </div>
+    <div class="grid2">
+      <label class="f" for="f-status">Status<select id="f-status"></select></label>
+      <label class="f" for="f-fu">Follow-up berikutnya<input id="f-fu" type="date"></label>
+    </div>
+    <label class="f" for="f-cat">Catatan<textarea id="f-cat" placeholder="mis. minta angsuran 35 bulan, warna hitam"></textarea></label>
+    <div class="notice" id="f-err" hidden></div>
+    <div class="btns">
+      <button class="btn ghost" type="button" id="f-cancel">Batal</button>
+      <button class="btn primary" type="submit">Simpan</button>
+    </div>
+    <button class="btn danger" type="button" id="f-del" hidden>Hapus lead ini</button>
+  </form>
+</div>
+
+<!-- pilih template WA -->
+<div class="sheet-wrap" id="sh-wa" hidden>
+  <div class="sheet" role="dialog" aria-labelledby="wa-title">
+    <h3 id="wa-title">Kirim pesan WhatsApp</h3>
+    <div class="small muted" id="wa-sub"></div>
+    <div id="wa-list" style="display:flex;flex-direction:column;gap:8px"></div>
+    <button class="btn ghost" type="button" id="wa-close">Tutup</button>
+  </div>
+</div>
+
+<div class="toast" id="toast" hidden role="status"></div>
+
+<script>
+const DATA = {"tenor":[11,23,29,35,39,47],"models":[{"n":"REVO FIT","o":18160000,"p":75000,"r":[[1500,2039,1138,981,876,825,757],[1600,2028,1132,976,871,820,753],[1700,2017,1125,971,866,816,749],[1800,2006,1119,966,862,812,745],[1900,1994,1113,961,857,807,742],[2000,1983,1107,955,852,803,738],[2100,1972,1101,950,848,799,734],[2200,1961,1095,945,843,794,730],[2300,1950,1089,940,839,790,726],[2400,1939,1083,935,834,785,722],[2500,1928,1077,929,829,781,718],[2600,1917,1071,924,825,777,714],[2700,1906,1065,919,820,772,710],[2800,1895,1059,914,815,768,706],[2900,1884,1052,908,811,764,702],[3000,1873,1046,903,806,759,698],[3100,1862,1040,898,801,755,694],[3200,1851,1034,893,797,750,690],[3300,1840,1028,888,792,746,686],[3400,1829,1022,882,788,742,682],[3500,1818,1016,877,783,737,678],[3600,1807,1010,872,778,733,674],[3700,1796,1004,867,774,729,670],[3800,1785,998,862,769,724,666],[3900,1774,992,856,764,720,662],[4000,1763,986,851,760,716,658],[4100,1752,979,846,755,711,654],[4200,1741,973,841,750,707,650],[4300,1730,967,836,746,702,646],[4400,1719,961,830,741,698,642],[4500,1708,955,825,737,694,638],[4600,1697,949,820,732,689,634],[4700,1686,943,815,727,685,630],[4800,1675,937,809,723,681,626],[4900,1664,931,804,718,676,622],[5000,1653,925,799,713,672,618],[5100,1642,919,794,709,668,614],[5200,1631,913,789,704,663,610],[5300,1620,907,783,699,659,606],[5400,1609,900,778,695,654,602],[5500,1598,894,773,690,650,598],[5600,1587,888,768,686,646,594],[5700,1576,882,763,681,641,590],[5800,1565,876,757,676,637,586],[5900,1554,870,752,672,633,582],[6000,1543,864,747,667,628,578],[6100,1532,858,742,662,624,574],[6200,1521,852,737,658,619,570],[6300,1510,846,731,653,615,566],[6400,1499,840,726,648,611,562],[6500,1488,834,721,644,606,559],[6600,1477,827,716,639,602,555],[6700,1466,821,710,635,598,551],[6800,1455,815,705,630,593,547],[6900,1444,809,700,625,589,543],[7000,1433,803,695,621,585,539],[7100,1422,797,690,616,580,535],[7200,1411,791,684,611,576,531],[7300,1399,785,679,607,571,527],[7400,1388,779,674,602,567,523],[7500,1377,773,669,597,563,519],[7600,1366,767,664,593,558,515],[7700,1355,761,658,588,554,511],[7800,1344,754,653,584,550,507],[7900,1333,748,648,579,545,503],[8000,1322,742,643,574,541,499],[8100,1311,736,637,570,537,495]]},{"n":"Revo X","o":19880000,"p":75000,"r":[[1600,2216,1238,1066,952,897,823],[1700,2205,1232,1061,948,892,819],[1800,2194,1225,1056,943,888,816],[1900,2183,1219,1051,938,884,812],[2000,2172,1213,1046,934,879,808],[2100,2161,1207,1040,929,875,804],[2200,2150,1201,1035,925,871,800],[2300,2139,1195,1030,920,866,796],[2400,2128,1189,1025,915,862,792],[2500,2117,1183,1020,911,858,788],[2600,2106,1177,1014,906,853,784],[2700,2095,1171,1009,901,849,780],[2800,2084,1165,1004,897,844,776],[2900,2073,1159,999,892,840,772],[3000,2062,1153,994,887,836,768],[3100,2051,1146,988,883,831,764],[3200,2040,1140,983,878,827,760],[3300,2029,1134,978,874,823,756],[3400,2018,1128,973,869,818,752],[3500,2007,1122,968,864,814,748],[3600,1996,1116,962,860,810,744],[3700,1985,1110,957,855,805,740],[3800,1974,1104,952,850,801,736],[3900,1963,1098,947,846,797,732],[4000,1952,1092,942,841,792,728],[4100,1941,1086,936,837,788,724],[4200,1930,1080,931,832,783,720],[4300,1919,1074,926,827,779,716],[4400,1908,1067,921,823,775,712],[4500,1897,1061,916,818,770,708],[4600,1886,1055,910,813,766,704],[4700,1875,1049,905,809,762,700],[4800,1864,1043,900,804,757,696],[4900,1853,1037,895,799,753,692],[5000,1842,1031,890,795,749,688],[5100,1831,1025,884,790,744,684],[5200,1820,1019,879,786,740,680],[5300,1809,1013,874,781,735,677],[5400,1798,1007,869,776,731,673],[5500,1787,1001,864,772,727,669],[5600,1776,995,858,767,722,665],[5700,1765,988,853,762,718,661],[5800,1754,982,848,758,714,657],[5900,1743,976,843,753,709,653],[6000,1732,970,838,749,705,649],[6100,1721,964,832,744,701,645],[6200,1710,958,827,739,696,641],[6300,1699,952,822,735,692,637],[6400,1688,946,817,730,687,633],[6500,1677,940,812,725,683,629],[6600,1666,934,806,721,679,625],[6700,1655,928,801,716,674,621],[6800,1644,922,796,711,670,617],[6900,1633,916,791,707,666,613],[7000,1622,909,786,702,661,609],[7100,1611,903,780,698,657,605],[7200,1600,897,775,693,653,601],[7300,1589,891,770,688,648,597],[7400,1578,885,765,684,644,593],[7500,1567,879,760,679,640,589],[7600,1556,873,754,674,635,585],[7700,1545,867,749,670,631,581],[7800,1534,861,744,665,626,577],[7900,1523,855,739,661,622,573],[8000,1512,849,734,656,618,569],[8100,1501,843,728,651,613,565],[8200,1490,837,723,647,609,561]]},{"n":"Beat eSP CBS","o":20360000,"p":111000,"r":[[1700,2266,1264,1090,956,899,824],[1800,2255,1257,1085,951,895,820],[1900,2244,1251,1080,947,890,816],[2000,2233,1245,1075,942,886,812],[2100,2222,1239,1070,938,882,808],[2200,2211,1233,1064,933,878,804],[2300,2200,1227,1059,929,873,800],[2400,2189,1221,1054,924,869,796],[2500,2178,1215,1049,919,865,792],[2600,2167,1209,1043,915,860,788],[2700,2156,1203,1038,910,856,785],[2800,2145,1197,1033,906,852,781],[2900,2134,1191,1028,901,848,777],[3000,2123,1184,1023,897,843,773],[3100,2112,1178,1017,892,839,769],[3200,2101,1172,1012,888,835,765],[3300,2090,1166,1007,883,830,761],[3400,2078,1160,1002,878,826,757],[3500,2067,1154,997,874,822,753],[3600,2056,1148,991,869,818,749],[3700,2045,1142,986,865,813,746],[3800,2034,1136,981,860,809,742],[3900,2023,1130,976,856,805,738],[4000,2012,1124,970,851,800,734],[4100,2001,1117,965,847,796,730],[4200,1990,1111,960,842,792,726],[4300,1979,1105,955,837,788,722],[4400,1968,1099,950,833,783,718],[4500,1957,1093,944,828,779,714],[4600,1946,1087,939,824,775,711],[4700,1935,1081,934,819,770,707],[4800,1924,1075,929,815,766,703],[4900,1913,1069,923,810,762,699],[5000,1902,1063,918,805,758,695],[5100,1891,1057,913,801,753,691],[5200,1880,1051,908,796,749,687],[5300,1869,1044,903,792,745,683],[5400,1858,1038,897,787,740,679],[5500,1847,1032,892,783,736,675],[5600,1836,1026,887,778,732,672],[5700,1825,1020,882,774,727,668],[5800,1814,1014,877,769,723,664],[5900,1803,1008,871,764,719,660],[6000,1791,1002,866,760,715,656],[6100,1780,996,861,755,710,652],[6200,1769,990,856,751,706,648],[6300,1758,984,850,746,702,644],[6400,1747,977,845,742,697,640],[6500,1736,971,840,737,693,636],[6600,1725,965,835,732,689,633],[6700,1714,959,830,728,685,629],[6800,1703,953,824,723,680,625],[6900,1692,947,819,719,676,621],[7000,1681,941,814,714,672,617],[7100,1670,935,809,710,667,613],[7200,1659,929,803,705,663,609],[7300,1648,923,798,701,659,605],[7400,1637,917,793,696,655,601],[7500,1626,911,788,691,650,598],[7600,1615,904,783,687,646,594],[7700,1604,898,777,682,642,590],[7800,1593,892,772,678,637,586],[7900,1582,886,767,673,633,582],[8000,1571,880,762,669,629,578],[8100,1560,874,757,664,625,574],[8200,1549,868,751,660,620,570],[8300,1538,862,746,655,616,566]]},{"n":"Beat Street","o":21160000,"p":111000,"r":[[1700,2356,1313,1133,994,935,856],[1800,2345,1307,1128,989,930,852],[1900,2334,1301,1123,985,926,848],[2000,2323,1295,1118,980,922,844],[2100,2312,1289,1113,975,917,840],[2200,2300,1283,1107,971,913,837],[2300,2289,1277,1102,966,909,833],[2400,2278,1271,1097,962,905,829],[2500,2267,1265,1092,957,900,825],[2600,2256,1259,1086,953,896,821],[2700,2245,1253,1081,948,892,817],[2800,2234,1246,1076,944,887,813],[2900,2223,1240,1071,939,883,809],[3000,2212,1234,1066,934,879,805],[3100,2201,1228,1060,930,874,801],[3200,2190,1222,1055,925,870,798],[3300,2179,1216,1050,921,866,794],[3400,2168,1210,1045,916,862,790],[3500,2157,1204,1040,912,857,786],[3600,2146,1198,1034,907,853,782],[3700,2135,1192,1029,902,849,778],[3800,2124,1186,1024,898,844,774],[3900,2113,1179,1019,893,840,770],[4000,2102,1173,1013,889,836,766],[4100,2091,1167,1008,884,832,763],[4200,2080,1161,1003,880,827,759],[4300,2069,1155,998,875,823,755],[4400,2058,1149,993,871,819,751],[4500,2047,1143,987,866,814,747],[4600,2036,1137,982,861,810,743],[4700,2025,1131,977,857,806,739],[4800,2013,1125,972,852,802,735],[4900,2002,1119,966,848,797,731],[5000,1991,1113,961,843,793,727],[5100,1980,1106,956,839,789,724],[5200,1969,1100,951,834,784,720],[5300,1958,1094,946,830,780,716],[5400,1947,1088,940,825,776,712],[5500,1936,1082,935,820,772,708],[5600,1925,1076,930,816,767,704],[5700,1914,1070,925,811,763,700],[5800,1903,1064,920,807,759,696],[5900,1892,1058,914,802,754,692],[6000,1881,1052,909,798,750,688],[6100,1870,1046,904,793,746,685],[6200,1859,1039,899,788,742,681],[6300,1848,1033,893,784,737,677],[6400,1837,1027,888,779,733,673],[6500,1826,1021,883,775,729,669],[6600,1815,1015,878,770,724,665],[6700,1804,1009,873,766,720,661],[6800,1793,1003,867,761,716,657],[6900,1782,997,862,757,711,653],[7000,1771,991,857,752,707,650],[7100,1760,985,852,747,703,646],[7200,1749,979,846,743,699,642],[7300,1738,973,841,738,694,638],[7400,1726,966,836,734,690,634],[7500,1715,960,831,729,686,630],[7600,1704,954,826,725,681,626],[7700,1693,948,820,720,677,622],[7800,1682,942,815,715,673,618],[7900,1671,936,810,711,669,614],[8000,1660,930,805,706,664,611],[8100,1649,924,800,702,660,607],[8200,1638,918,794,697,656,603],[8300,1627,912,789,693,651,599]]},{"n":"Beat eSP ISS DX","o":21200000,"p":111000,"r":[[1700,2360,1316,1136,996,936,858],[1800,2349,1310,1130,991,932,854],[1900,2338,1304,1125,986,928,850],[2000,2327,1298,1120,982,923,846],[2100,2316,1292,1115,977,919,842],[2200,2305,1285,1110,973,915,838],[2300,2294,1279,1104,968,911,834],[2400,2283,1273,1099,964,906,830],[2500,2272,1267,1094,959,902,826],[2600,2261,1261,1089,955,898,823],[2700,2250,1255,1083,950,893,819],[2800,2239,1249,1078,945,889,815],[2900,2228,1243,1073,941,885,811],[3000,2217,1237,1068,936,881,807],[3100,2206,1231,1063,932,876,803],[3200,2195,1225,1057,927,872,799],[3300,2183,1219,1052,923,868,795],[3400,2172,1212,1047,918,863,791],[3500,2161,1206,1042,913,859,787],[3600,2150,1200,1036,909,855,784],[3700,2139,1194,1031,904,851,780],[3800,2128,1188,1026,900,846,776],[3900,2117,1182,1021,895,842,772],[4000,2106,1176,1016,891,838,768],[4100,2095,1170,1010,886,833,764],[4200,2084,1164,1005,882,829,760],[4300,2073,1158,1000,877,825,756],[4400,2062,1152,995,872,820,752],[4500,2051,1145,990,868,816,749],[4600,2040,1139,984,863,812,745],[4700,2029,1133,979,859,808,741],[4800,2018,1127,974,854,803,737],[4900,2007,1121,969,850,799,733],[5000,1996,1115,963,845,795,729],[5100,1985,1109,958,840,790,725],[5200,1974,1103,953,836,786,721],[5300,1963,1097,948,831,782,717],[5400,1952,1091,943,827,778,713],[5500,1941,1085,937,822,773,710],[5600,1930,1079,932,818,769,706],[5700,1919,1072,927,813,765,702],[5800,1908,1066,922,809,760,698],[5900,1896,1060,916,804,756,694],[6000,1885,1054,911,799,752,690],[6100,1874,1048,906,795,748,686],[6200,1863,1042,901,790,743,682],[6300,1852,1036,896,786,739,678],[6400,1841,1030,890,781,735,674],[6500,1830,1024,885,777,730,671],[6600,1819,1018,880,772,726,667],[6700,1808,1012,875,768,722,663],[6800,1797,1005,870,763,718,659],[6900,1786,999,864,758,713,655],[7000,1775,993,859,754,709,651],[7100,1764,987,854,749,705,647],[7200,1753,981,849,745,700,643],[7300,1742,975,843,740,696,639],[7400,1731,969,838,736,692,636],[7500,1720,963,833,731,688,632],[7600,1709,957,828,726,683,628],[7700,1698,951,823,722,679,624],[7800,1687,945,817,717,675,620],[7900,1676,939,812,713,670,616],[8000,1665,932,807,708,666,612],[8100,1654,926,802,704,662,608],[8200,1643,920,796,699,657,604],[8300,1632,914,791,695,653,600]]},{"n":"GENIO CBS","o":21300000,"p":100000,"r":[[1800,2342,1315,1137,1018,960,884],[1900,2331,1309,1132,1013,956,880],[2000,2320,1303,1127,1009,951,876],[2100,2309,1297,1121,1004,947,872],[2200,2298,1291,1116,999,942,868],[2300,2287,1284,1111,994,938,864],[2400,2276,1278,1106,990,933,860],[2500,2265,1272,1100,985,929,856],[2600,2254,1266,1095,980,925,852],[2700,2243,1260,1090,976,920,848],[2800,2232,1254,1084,971,916,844],[2900,2221,1248,1079,966,911,839],[3000,2209,1241,1074,961,907,835],[3100,2198,1235,1069,957,902,831],[3200,2212,1243,1075,962,908,836],[3300,2201,1236,1070,958,903,832],[3400,2190,1230,1064,953,899,828],[3500,2178,1224,1059,948,894,824],[3600,2167,1218,1054,944,890,820],[3700,2156,1212,1049,939,885,816],[3800,2145,1206,1043,934,881,812],[3900,2134,1200,1038,929,877,808],[4000,2123,1193,1033,925,872,804],[4100,2112,1187,1028,920,868,800],[4200,2101,1181,1022,915,863,796],[4300,2090,1175,1017,911,859,792],[4400,2079,1169,1012,906,854,788],[4500,2068,1163,1006,901,850,783],[4600,2057,1157,1001,896,845,779],[4700,2046,1150,996,892,841,775],[4800,2035,1144,991,887,837,771],[4900,2024,1138,985,882,832,767],[5000,2012,1132,980,878,828,763],[5100,2001,1126,975,873,823,759],[5200,1990,1120,969,868,819,755],[5300,1979,1114,964,864,814,751],[5400,1968,1107,959,859,810,747],[5500,1957,1101,954,854,805,743],[5600,1946,1095,948,849,801,739],[5700,1935,1089,943,845,797,735],[5800,1924,1083,938,840,792,731],[5900,1913,1077,933,835,788,727],[6000,1902,1071,927,831,783,723],[6100,1866,1064,922,826,779,719],[6200,1855,1058,917,821,774,714],[6300,1844,1052,911,816,770,710],[6400,1833,1046,906,812,766,706],[6500,1822,1040,901,807,761,702],[6600,1811,1034,896,802,757,698],[6700,1800,1028,890,798,752,694],[6800,1789,1021,885,793,748,690],[6900,1778,1015,880,788,743,686],[7000,1767,1009,874,783,739,682],[7100,1756,1003,869,779,734,678],[7200,1745,997,864,774,730,674],[7300,1734,991,859,769,726,670],[7400,1722,985,853,765,721,666],[7500,1711,978,848,760,717,662],[7600,1700,972,843,755,712,658],[7700,1689,966,838,750,708,654],[7800,1678,960,832,746,703,650],[7900,1667,954,827,741,699,646],[8000,1656,948,822,736,694,641],[8100,1645,942,816,732,690,637],[8200,1634,935,811,727,686,633],[8300,1623,929,806,722,681,629],[8400,1612,923,801,717,677,625]]},{"n":"SUPRA X 125 SW","o":21350000,"p":75000,"r":[[1800,2371,1329,1148,1026,967,890],[1900,2360,1323,1143,1021,963,886],[2000,2349,1317,1137,1016,958,882],[2100,2338,1311,1132,1012,954,878],[2200,2327,1305,1127,1007,949,874],[2300,2316,1299,1122,1002,945,870],[2400,2305,1293,1116,998,941,866],[2500,2294,1287,1111,993,936,862],[2600,2283,1280,1106,988,932,858],[2700,2272,1274,1101,984,927,853],[2800,2261,1268,1095,979,923,849],[2900,2250,1262,1090,974,918,845],[3000,2238,1256,1085,970,914,841],[3100,2227,1250,1080,965,910,837],[3200,2216,1244,1074,960,905,833],[3300,2205,1237,1069,956,901,829],[3400,2194,1231,1064,951,896,825],[3500,2183,1225,1059,946,892,821],[3600,2172,1219,1053,941,888,817],[3700,2161,1213,1048,937,883,813],[3800,2150,1207,1043,932,879,809],[3900,2139,1201,1037,927,874,805],[4000,2128,1195,1032,923,870,801],[4100,2117,1188,1027,918,865,797],[4200,2106,1182,1022,913,861,793],[4300,2095,1176,1016,909,857,789],[4400,2084,1170,1011,904,852,785],[4500,2073,1164,1006,899,848,781],[4600,2061,1158,1001,895,843,777],[4700,2050,1152,995,890,839,773],[4800,2039,1145,990,885,834,769],[4900,2028,1139,985,881,830,765],[5000,2017,1133,980,876,826,761],[5100,2006,1127,974,871,821,757],[5200,1995,1121,969,866,817,753],[5300,1984,1115,964,862,812,749],[5400,1973,1109,959,857,808,745],[5500,1962,1103,953,852,804,741],[5600,1951,1096,948,848,799,737],[5700,1940,1090,943,843,795,733],[5800,1929,1084,938,838,790,728],[5900,1918,1078,932,834,786,724],[6000,1907,1072,927,829,781,720],[6100,1895,1066,922,824,777,716],[6200,1884,1060,917,820,773,712],[6300,1873,1053,911,815,768,708],[6400,1862,1047,906,810,764,704],[6500,1851,1041,901,806,759,700],[6600,1840,1035,895,801,755,696],[6700,1829,1029,890,796,751,692],[6800,1818,1023,885,791,746,688],[6900,1807,1017,880,787,742,684],[7000,1796,1010,874,782,737,680],[7100,1785,1004,869,777,733,676],[7200,1774,998,864,773,728,672],[7300,1763,992,859,768,724,668],[7400,1752,986,853,763,720,664],[7500,1741,980,848,759,715,660],[7600,1730,974,843,754,711,656],[7700,1718,968,838,749,706,652],[7800,1707,961,832,745,702,648],[7900,1696,955,827,740,697,644],[8000,1685,949,822,735,693,640],[8100,1674,943,817,731,689,636],[8200,1663,937,811,726,684,632],[8300,1652,931,806,721,680,628],[8400,1641,925,801,716,675,624]]},{"n":"Genio SE","o":21560000,"p":100000,"r":[[1800,2389,1338,1156,1034,974,896],[1900,2378,1332,1151,1029,970,892],[2000,2367,1326,1145,1024,965,888],[2100,2356,1320,1140,1019,961,884],[2200,2345,1314,1135,1015,956,880],[2300,2334,1307,1130,1010,952,876],[2400,2323,1301,1124,1005,948,872],[2500,2312,1295,1119,1001,943,868],[2600,2301,1289,1114,996,939,864],[2700,2290,1283,1109,991,934,860],[2800,2279,1277,1103,987,930,856],[2900,2268,1271,1098,982,926,852],[3000,2257,1265,1093,977,921,848],[3100,2246,1259,1088,973,917,844],[3200,2235,1252,1082,968,912,840],[3300,2224,1246,1077,963,908,836],[3400,2213,1240,1072,959,904,832],[3500,2202,1234,1067,954,899,828],[3600,2191,1228,1061,949,895,823],[3700,2180,1222,1056,945,890,819],[3800,2169,1216,1051,940,886,815],[3900,2158,1210,1046,935,882,811],[4000,2146,1204,1040,931,877,807],[4100,2135,1197,1035,926,873,803],[4200,2124,1191,1030,921,868,799],[4300,2113,1185,1025,917,864,795],[4400,2102,1179,1019,912,859,791],[4500,2091,1173,1014,907,855,787],[4600,2080,1167,1009,903,851,783],[4700,2069,1161,1004,898,846,779],[4800,2058,1155,998,893,842,775],[4900,2047,1149,993,889,837,771],[5000,2036,1142,988,884,833,767],[5100,2025,1136,983,879,829,763],[5200,2014,1130,977,875,824,759],[5300,2003,1124,972,870,820,755],[5400,1992,1118,967,865,815,751],[5500,1981,1112,962,860,811,747],[5600,1970,1106,956,856,807,743],[5700,1959,1100,951,851,802,739],[5800,1948,1094,946,846,798,735],[5900,1937,1087,941,842,793,731],[6000,1926,1081,936,837,789,727],[6100,1915,1075,930,832,785,723],[6200,1904,1069,925,828,780,719],[6300,1893,1063,920,823,776,715],[6400,1882,1057,915,818,771,711],[6500,1871,1051,909,814,767,707],[6600,1859,1045,904,809,763,703],[6700,1848,1038,899,804,758,699],[6800,1837,1032,894,800,754,695],[6900,1826,1026,888,795,749,691],[7000,1815,1020,883,790,745,687],[7100,1804,1014,878,786,740,683],[7200,1793,1008,873,781,736,679],[7300,1782,1002,867,776,732,675],[7400,1771,996,862,772,727,671],[7500,1760,990,857,767,723,667],[7600,1749,983,852,762,718,663],[7700,1738,977,846,758,714,659],[7800,1727,971,841,753,710,655],[7900,1716,965,836,748,705,651],[8000,1705,959,831,744,701,647],[8100,1694,953,825,739,696,643],[8200,1683,947,820,734,692,639],[8300,1672,941,815,730,688,635],[8400,1661,935,810,725,683,631]]},{"n":"Beat Keyless","o":21800000,"p":111000,"r":[[1800,2416,1347,1163,1019,959,878],[1900,2405,1341,1157,1015,954,874],[2000,2394,1335,1152,1010,950,870],[2100,2383,1329,1147,1006,946,866],[2200,2372,1323,1142,1001,941,863],[2300,2361,1317,1137,996,937,859],[2400,2350,1311,1131,992,933,855],[2500,2339,1305,1126,987,929,851],[2600,2328,1299,1121,983,924,847],[2700,2317,1292,1116,978,920,843],[2800,2306,1286,1110,974,916,839],[2900,2295,1280,1105,969,911,835],[3000,2284,1274,1100,965,907,831],[3100,2273,1268,1095,960,903,827],[3200,2262,1262,1090,955,899,824],[3300,2251,1256,1084,951,894,820],[3400,2240,1250,1079,946,890,816],[3500,2229,1244,1074,942,886,812],[3600,2217,1238,1069,937,881,808],[3700,2206,1232,1064,933,877,804],[3800,2195,1226,1058,928,873,800],[3900,2184,1219,1053,924,869,796],[4000,2173,1213,1048,919,864,792],[4100,2162,1207,1043,914,860,788],[4200,2151,1201,1037,910,856,785],[4300,2140,1195,1032,905,851,781],[4400,2129,1189,1027,901,847,777],[4500,2118,1183,1022,896,843,773],[4600,2107,1177,1017,892,838,769],[4700,2096,1171,1011,887,834,765],[4800,2085,1165,1006,882,830,761],[4900,2074,1159,1001,878,826,757],[5000,2063,1152,996,873,821,753],[5100,2052,1146,990,869,817,750],[5200,2041,1140,985,864,813,746],[5300,2030,1134,980,860,808,742],[5400,2019,1128,975,855,804,738],[5500,2008,1122,970,851,800,734],[5600,1997,1116,964,846,796,730],[5700,1986,1110,959,841,791,726],[5800,1975,1104,954,837,787,722],[5900,1964,1098,949,832,783,718],[6000,1953,1092,944,828,778,714],[6100,1942,1086,938,823,774,711],[6200,1930,1079,933,819,770,707],[6300,1919,1073,928,814,766,703],[6400,1908,1067,923,809,761,699],[6500,1897,1061,917,805,757,695],[6600,1886,1055,912,800,753,691],[6700,1875,1049,907,796,748,687],[6800,1864,1043,902,791,744,683],[6900,1853,1037,897,787,740,679],[7000,1842,1031,891,782,736,675],[7100,1831,1025,886,778,731,672],[7200,1820,1019,881,773,727,668],[7300,1809,1012,876,768,723,664],[7400,1798,1006,870,764,718,660],[7500,1787,1000,865,759,714,656],[7600,1776,994,860,755,710,652],[7700,1765,988,855,750,706,648],[7800,1754,982,850,746,701,644],[7900,1743,976,844,741,697,640],[8000,1732,970,839,737,693,637],[8100,1721,964,834,732,688,633],[8200,1710,958,829,727,684,629],[8300,1699,952,824,723,680,625],[8400,1688,946,818,718,676,621]]},{"n":"Genio CBS ISS","o":21860000,"p":100000,"r":[[1800,2430,1364,1179,1056,996,917],[1900,2418,1358,1174,1051,991,913],[2000,2407,1352,1169,1046,987,909],[2100,2396,1345,1163,1042,982,905],[2200,2385,1339,1158,1037,978,900],[2300,2374,1333,1153,1032,973,896],[2400,2363,1327,1148,1027,969,892],[2500,2352,1321,1142,1023,964,888],[2600,2341,1315,1137,1018,960,884],[2700,2330,1309,1132,1013,956,880],[2800,2319,1302,1127,1009,951,876],[2900,2308,1296,1121,1004,947,872],[3000,2297,1290,1116,999,942,868],[3100,2286,1284,1111,994,938,864],[3200,2275,1278,1105,990,933,860],[3300,2264,1272,1100,985,929,856],[3400,2252,1266,1095,980,925,852],[3500,2241,1259,1090,976,920,848],[3600,2230,1253,1084,971,916,844],[3700,2219,1247,1079,966,911,840],[3800,2208,1241,1074,961,907,836],[3900,2197,1235,1069,957,902,831],[4000,2186,1229,1063,952,898,827],[4100,2175,1223,1058,947,893,823],[4200,2164,1216,1053,943,889,819],[4300,2153,1210,1047,938,885,815],[4400,2142,1204,1042,933,880,811],[4500,2131,1198,1037,928,876,807],[4600,2120,1192,1032,924,871,803],[4700,2109,1186,1026,919,867,799],[4800,2097,1180,1021,914,862,795],[4900,2086,1173,1016,910,858,791],[5000,2075,1167,1010,905,853,787],[5100,2064,1161,1005,900,849,783],[5200,2053,1155,1000,895,845,779],[5300,2042,1149,995,891,840,775],[5400,2031,1143,989,886,836,771],[5500,2020,1136,984,881,831,767],[5600,2009,1130,979,877,827,763],[5700,1998,1124,974,872,822,758],[5800,1987,1118,968,867,818,754],[5900,1976,1112,963,863,813,750],[6000,1965,1106,958,858,809,746],[6100,1954,1100,952,853,805,742],[6200,1943,1093,947,848,800,738],[6300,1931,1087,942,844,796,734],[6400,1920,1081,937,839,791,730],[6500,1909,1075,931,834,787,726],[6600,1898,1069,926,830,782,722],[6700,1887,1063,921,825,778,718],[6800,1876,1057,915,820,773,714],[6900,1865,1050,910,815,769,710],[7000,1854,1044,905,811,765,706],[7100,1843,1038,900,806,760,702],[7200,1832,1032,894,801,756,698],[7300,1821,1026,889,797,751,694],[7400,1810,1020,884,792,747,690],[7500,1799,1014,879,787,742,685],[7600,1788,1007,873,782,738,681],[7700,1776,1001,868,778,733,677],[7800,1765,995,863,773,729,673],[7900,1754,989,857,768,725,669],[8000,1743,983,852,764,720,665],[8100,1732,977,847,759,716,661],[8200,1721,971,842,754,711,657],[8300,1710,964,836,749,707,653],[8400,1699,958,831,745,702,649]]},{"n":"SUPRA X 125 CW","o":22390000,"p":75000,"r":[[1800,2486,1392,1203,1076,1015,933],[1900,2475,1386,1198,1072,1010,929],[2000,2463,1380,1193,1067,1006,925],[2100,2452,1374,1187,1062,1001,921],[2200,2441,1368,1182,1057,997,917],[2300,2430,1362,1177,1053,992,913],[2400,2419,1356,1172,1048,988,909],[2500,2408,1350,1166,1043,984,905],[2600,2397,1343,1161,1039,979,901],[2700,2386,1337,1156,1034,975,897],[2800,2375,1331,1151,1029,970,893],[2900,2364,1325,1145,1025,966,889],[3000,2353,1319,1140,1020,962,885],[3100,2342,1313,1135,1015,957,881],[3200,2331,1307,1130,1011,953,877],[3300,2320,1301,1124,1006,948,873],[3400,2309,1294,1119,1001,944,869],[3500,2298,1288,1114,997,939,865],[3600,2287,1282,1109,992,935,861],[3700,2276,1276,1103,987,931,857],[3800,2265,1270,1098,982,926,853],[3900,2253,1264,1093,978,922,849],[4000,2242,1258,1088,973,917,845],[4100,2231,1252,1082,968,913,841],[4200,2220,1245,1077,964,909,837],[4300,2209,1239,1072,959,904,833],[4400,2198,1233,1067,954,900,829],[4500,2187,1227,1061,950,895,825],[4600,2176,1221,1056,945,891,821],[4700,2165,1215,1051,940,886,817],[4800,2154,1209,1046,936,882,812],[4900,2143,1203,1040,931,878,808],[5000,2132,1196,1035,926,873,804],[5100,2121,1190,1030,922,869,800],[5200,2110,1184,1024,917,864,796],[5300,2099,1178,1019,912,860,792],[5400,2088,1172,1014,907,855,788],[5500,2077,1166,1009,903,851,784],[5600,2066,1160,1003,898,847,780],[5700,2054,1154,998,893,842,776],[5800,2043,1147,993,889,838,772],[5900,2032,1141,988,884,833,768],[6000,2021,1135,982,879,829,764],[6100,2010,1129,977,875,825,760],[6200,1999,1123,972,870,820,756],[6300,1988,1117,967,865,816,752],[6400,1977,1111,961,861,811,748],[6500,1966,1105,956,856,807,744],[6600,1955,1098,951,851,802,740],[6700,1944,1092,946,847,798,736],[6800,1933,1086,940,842,794,732],[6900,1922,1080,935,837,789,728],[7000,1911,1074,930,832,785,724],[7100,1900,1068,925,828,780,720],[7200,1889,1062,919,823,776,716],[7300,1878,1056,914,818,772,712],[7400,1867,1049,909,814,767,708],[7500,1856,1043,904,809,763,704],[7600,1844,1037,898,804,758,700],[7700,1833,1031,893,800,754,696],[7800,1822,1025,888,795,749,692],[7900,1811,1019,883,790,745,687],[8000,1800,1013,877,786,741,683],[8100,1789,1007,872,781,736,679],[8200,1778,1000,867,776,732,675],[8300,1767,994,862,772,727,671],[8400,1756,988,856,767,723,667]]},{"n":"SCOOPY STD","o":23940000,"p":150000,"r":[[2000,2658,1500,1301,1156,1091,1006],[2100,2646,1494,1295,1151,1086,1001],[2200,2635,1488,1290,1146,1082,997],[2300,2624,1482,1285,1142,1077,993],[2400,2613,1476,1279,1137,1073,989],[2500,2602,1469,1274,1132,1068,985],[2600,2591,1463,1269,1127,1064,981],[2700,2580,1457,1263,1123,1059,977],[2800,2568,1451,1258,1118,1055,973],[2900,2557,1444,1253,1113,1050,969],[3000,2546,1438,1247,1108,1046,965],[3100,2535,1432,1242,1104,1042,961],[3200,2524,1426,1236,1099,1037,956],[3300,2513,1420,1231,1094,1033,952],[3400,2502,1413,1226,1089,1028,948],[3500,2490,1407,1220,1085,1024,944],[3600,2479,1401,1215,1080,1019,940],[3700,2468,1395,1210,1075,1015,936],[3800,2457,1388,1204,1070,1010,932],[3900,2446,1382,1199,1066,1006,928],[4000,2435,1376,1194,1061,1001,924],[4100,2424,1370,1188,1056,997,920],[4200,2412,1364,1183,1052,992,915],[4300,2401,1357,1178,1047,988,911],[4400,2390,1351,1172,1042,983,907],[4500,2379,1345,1167,1037,979,903],[4600,2368,1339,1162,1033,974,899],[4700,2357,1332,1156,1028,970,895],[4800,2346,1326,1151,1023,965,891],[4900,2334,1320,1145,1018,961,887],[5000,2323,1314,1140,1014,956,883],[5100,2312,1308,1135,1009,952,879],[5200,2301,1301,1129,1004,948,875],[5300,2290,1295,1124,999,943,870],[5400,2279,1289,1119,995,939,866],[5500,2268,1283,1113,990,934,862],[5600,2256,1276,1108,985,930,858],[5700,2245,1270,1103,980,925,854],[5800,2234,1264,1097,976,921,850],[5900,2223,1258,1092,971,916,846],[6000,2212,1252,1087,966,912,842],[6100,2201,1245,1081,961,907,838],[6200,2190,1239,1076,957,903,834],[6300,2179,1233,1070,952,898,830],[6400,2167,1227,1065,947,894,825],[6500,2156,1221,1060,942,889,821],[6600,2145,1214,1054,938,885,817],[6700,2134,1208,1049,933,880,813],[6800,2123,1202,1044,928,876,809],[6900,2112,1196,1038,923,871,805],[7000,2101,1189,1033,919,867,801],[7100,2089,1183,1028,914,862,797],[7200,2078,1177,1022,909,858,793],[7300,2067,1171,1017,904,853,789],[7400,2056,1165,1012,900,849,784],[7500,2045,1158,1006,895,845,780],[7600,2034,1152,1001,890,840,776],[7700,2023,1146,996,885,836,772],[7800,2011,1140,990,881,831,768],[7900,2000,1133,985,876,827,764],[8000,1989,1127,979,871,822,760],[8100,1978,1121,974,866,818,756],[8200,1967,1115,969,862,813,752],[8300,1956,1109,963,857,809,748],[8400,1945,1102,958,852,804,744],[8500,1933,1096,953,847,800,739],[8600,1922,1090,947,843,795,735]]},{"n":"Verza Spoke","o":24410000,"p":140000,"r":[[2000,2706,1522,1317,1179,1113,1025],[2100,2695,1515,1311,1175,1108,1021],[2200,2684,1509,1306,1170,1104,1017],[2300,2673,1503,1301,1165,1099,1013],[2400,2662,1497,1295,1161,1095,1009],[2500,2651,1491,1290,1156,1090,1005],[2600,2639,1485,1285,1151,1086,1001],[2700,2628,1478,1280,1146,1082,997],[2800,2617,1472,1274,1142,1077,993],[2900,2606,1466,1269,1137,1073,989],[3000,2595,1460,1264,1132,1068,985],[3100,2584,1454,1258,1127,1064,980],[3200,2573,1448,1253,1123,1059,976],[3300,2562,1441,1248,1118,1055,972],[3400,2551,1435,1242,1113,1050,968],[3500,2540,1429,1237,1108,1046,964],[3600,2529,1423,1232,1104,1041,960],[3700,2517,1417,1227,1099,1037,956],[3800,2506,1411,1221,1094,1032,952],[3900,2495,1404,1216,1089,1028,948],[4000,2484,1398,1211,1085,1023,944],[4100,2473,1392,1205,1080,1019,940],[4200,2462,1386,1200,1075,1015,936],[4300,2451,1380,1195,1071,1010,932],[4400,2440,1374,1189,1066,1006,927],[4500,2429,1367,1184,1061,1001,923],[4600,2418,1361,1179,1056,997,919],[4700,2407,1355,1174,1052,992,915],[4800,2395,1349,1168,1047,988,911],[4900,2384,1343,1163,1042,983,907],[5000,2373,1337,1158,1037,979,903],[5100,2362,1330,1152,1033,974,899],[5200,2351,1324,1147,1028,970,895],[5300,2340,1318,1142,1023,965,891],[5400,2329,1312,1137,1018,961,887],[5500,2318,1306,1131,1014,956,883],[5600,2307,1300,1126,1009,952,878],[5700,2296,1293,1121,1004,948,874],[5800,2285,1287,1115,1000,943,870],[5900,2274,1281,1110,995,939,866],[6000,2262,1275,1105,990,934,862],[6100,2251,1269,1099,985,930,858],[6200,2240,1263,1094,981,925,854],[6300,2229,1256,1089,976,921,850],[6400,2218,1250,1084,971,916,846],[6500,2207,1244,1078,966,912,842],[6600,2196,1238,1073,962,907,838],[6700,2185,1232,1068,957,903,834],[6800,2174,1226,1062,952,898,829],[6900,2163,1219,1057,947,894,825],[7000,2152,1213,1052,943,889,821],[7100,2140,1207,1046,938,885,817],[7200,2129,1201,1041,933,881,813],[7300,2118,1195,1036,929,876,809],[7400,2107,1189,1031,924,872,805],[7500,2096,1182,1025,919,867,801],[7600,2085,1176,1020,914,863,797],[7700,2074,1170,1015,910,858,793],[7800,2063,1164,1009,905,854,789],[7900,2052,1158,1004,900,849,785],[8000,2041,1152,999,895,845,781],[8100,2030,1145,993,891,840,776],[8200,2018,1139,988,886,836,772],[8300,2007,1133,983,881,831,768],[8400,1996,1127,978,876,827,764],[8500,1985,1121,972,872,822,760],[8600,1974,1115,967,867,818,756]]},{"n":"SCOOPY SMART KEY","o":24820000,"p":150000,"r":[[2000,2757,1556,1349,1199,1131,1043],[2100,2746,1550,1344,1194,1127,1039],[2200,2734,1544,1339,1190,1123,1035],[2300,2723,1538,1333,1185,1118,1031],[2400,2712,1532,1328,1180,1114,1027],[2500,2701,1525,1323,1175,1109,1023],[2600,2690,1519,1317,1171,1105,1019],[2700,2679,1513,1312,1166,1100,1014],[2800,2668,1507,1306,1161,1096,1010],[2900,2657,1501,1301,1156,1091,1006],[3000,2645,1494,1296,1152,1087,1002],[3100,2634,1488,1290,1147,1082,998],[3200,2623,1482,1285,1142,1078,994],[3300,2612,1476,1280,1137,1073,990],[3400,2601,1469,1274,1133,1069,986],[3500,2590,1463,1269,1128,1064,982],[3600,2579,1457,1264,1123,1060,978],[3700,2567,1451,1258,1118,1055,973],[3800,2556,1445,1253,1114,1051,969],[3900,2545,1438,1248,1109,1046,965],[4000,2534,1432,1242,1104,1042,961],[4100,2523,1426,1237,1099,1037,957],[4200,2512,1420,1231,1095,1033,953],[4300,2501,1413,1226,1090,1029,949],[4400,2489,1407,1221,1085,1024,945],[4500,2478,1401,1215,1080,1020,941],[4600,2467,1395,1210,1076,1015,937],[4700,2456,1389,1205,1071,1011,933],[4800,2445,1382,1199,1066,1006,928],[4900,2434,1376,1194,1061,1002,924],[5000,2423,1370,1189,1057,997,920],[5100,2411,1364,1183,1052,993,916],[5200,2400,1357,1178,1047,988,912],[5300,2389,1351,1173,1042,984,908],[5400,2378,1345,1167,1038,979,904],[5500,2367,1339,1162,1033,975,900],[5600,2356,1333,1157,1028,970,896],[5700,2345,1326,1151,1023,966,892],[5800,2333,1320,1146,1019,961,888],[5900,2322,1314,1140,1014,957,883],[6000,2311,1308,1135,1009,952,879],[6100,2300,1301,1130,1004,948,875],[6200,2289,1295,1124,1000,943,871],[6300,2278,1289,1119,995,939,867],[6400,2267,1283,1114,990,934,863],[6500,2255,1277,1108,986,930,859],[6600,2244,1270,1103,981,926,855],[6700,2233,1264,1098,976,921,851],[6800,2222,1258,1092,971,917,847],[6900,2211,1252,1087,967,912,842],[7000,2200,1246,1082,962,908,838],[7100,2189,1239,1076,957,903,834],[7200,2178,1233,1071,952,899,830],[7300,2166,1227,1066,948,894,826],[7400,2155,1221,1060,943,890,822],[7500,2144,1214,1055,938,885,818],[7600,2133,1208,1049,933,881,814],[7700,2122,1202,1044,929,876,810],[7800,2111,1196,1039,924,872,806],[7900,2100,1190,1033,919,867,802],[8000,2088,1183,1028,914,863,797],[8100,2077,1177,1023,910,858,793],[8200,2066,1171,1017,905,854,789],[8300,2055,1165,1012,900,849,785],[8400,2044,1158,1007,895,845,781],[8500,2033,1152,1001,891,840,777],[8600,2022,1146,996,886,836,773]]},{"n":"Verza Cw","o":25070000,"p":140000,"r":[[2100,2769,1557,1347,1207,1139,1049],[2200,2758,1551,1342,1202,1134,1045],[2300,2747,1545,1337,1198,1130,1041],[2400,2736,1539,1332,1193,1125,1037],[2500,2725,1532,1326,1188,1121,1033],[2600,2714,1526,1321,1183,1116,1029],[2700,2702,1520,1316,1179,1112,1025],[2800,2691,1514,1310,1174,1108,1021],[2900,2680,1508,1305,1169,1103,1017],[3000,2669,1502,1300,1164,1099,1013],[3100,2658,1495,1294,1160,1094,1009],[3200,2647,1489,1289,1155,1090,1004],[3300,2636,1483,1284,1150,1085,1000],[3400,2625,1477,1279,1145,1081,996],[3500,2614,1471,1273,1141,1076,992],[3600,2603,1465,1268,1136,1072,988],[3700,2592,1458,1263,1131,1067,984],[3800,2580,1452,1257,1127,1063,980],[3900,2569,1446,1252,1122,1058,976],[4000,2558,1440,1247,1117,1054,972],[4100,2547,1434,1241,1112,1049,968],[4200,2536,1428,1236,1108,1045,964],[4300,2525,1421,1231,1103,1041,960],[4400,2514,1415,1226,1098,1036,956],[4500,2503,1409,1220,1093,1032,951],[4600,2492,1403,1215,1089,1027,947],[4700,2481,1397,1210,1084,1023,943],[4800,2470,1391,1204,1079,1018,939],[4900,2458,1384,1199,1074,1014,935],[5000,2447,1378,1194,1070,1009,931],[5100,2436,1372,1188,1065,1005,927],[5200,2425,1366,1183,1060,1000,923],[5300,2414,1360,1178,1056,996,919],[5400,2403,1354,1173,1051,991,915],[5500,2392,1347,1167,1046,987,911],[5600,2381,1341,1162,1041,982,907],[5700,2370,1335,1157,1037,978,902],[5800,2359,1329,1151,1032,974,898],[5900,2348,1323,1146,1027,969,894],[6000,2337,1317,1141,1022,965,890],[6100,2325,1310,1135,1018,960,886],[6200,2314,1304,1130,1013,956,882],[6300,2303,1298,1125,1008,951,878],[6400,2292,1292,1120,1003,947,874],[6500,2281,1286,1114,999,942,870],[6600,2270,1280,1109,994,938,866],[6700,2259,1273,1104,989,933,862],[6800,2248,1267,1098,985,929,858],[6900,2237,1261,1093,980,924,853],[7000,2226,1255,1088,975,920,849],[7100,2215,1249,1083,970,915,845],[7200,2203,1243,1077,966,911,841],[7300,2192,1236,1072,961,907,837],[7400,2181,1230,1067,956,902,833],[7500,2170,1224,1061,951,898,829],[7600,2159,1218,1056,947,893,825],[7700,2148,1212,1051,942,889,821],[7800,2137,1206,1045,937,884,817],[7900,2126,1199,1040,932,880,813],[8000,2115,1193,1035,928,875,809],[8100,2104,1187,1030,923,871,805],[8200,2093,1181,1024,918,866,800],[8300,2081,1175,1019,914,862,796],[8400,2070,1169,1014,909,857,792],[8500,2059,1162,1008,904,853,788],[8600,2048,1156,1003,899,848,784],[8700,2037,1150,998,895,844,780]]},{"n":"Vario 125 CBS","o":25420000,"p":125000,"r":[[2100,2813,1575,1363,1224,1155,1065],[2200,2802,1569,1358,1219,1150,1060],[2300,2791,1563,1352,1214,1146,1056],[2400,2780,1556,1347,1210,1141,1052],[2500,2769,1550,1342,1205,1137,1048],[2600,2758,1544,1336,1200,1132,1044],[2700,2747,1538,1331,1195,1128,1040],[2800,2735,1532,1326,1191,1123,1036],[2900,2724,1526,1320,1186,1119,1032],[3000,2713,1519,1315,1181,1115,1028],[3100,2702,1513,1310,1176,1110,1024],[3200,2691,1507,1305,1172,1106,1020],[3300,2680,1501,1299,1167,1101,1015],[3400,2669,1495,1294,1162,1097,1011],[3500,2657,1489,1289,1157,1092,1007],[3600,2646,1482,1283,1153,1088,1003],[3700,2635,1476,1278,1148,1083,999],[3800,2624,1470,1273,1143,1079,995],[3900,2613,1464,1267,1138,1074,991],[4000,2602,1458,1262,1134,1070,987],[4100,2591,1452,1257,1129,1065,983],[4200,2579,1445,1252,1124,1061,979],[4300,2568,1439,1246,1119,1056,975],[4400,2557,1433,1241,1115,1052,970],[4500,2546,1427,1236,1110,1047,966],[4600,2535,1421,1230,1105,1043,962],[4700,2524,1415,1225,1100,1038,958],[4800,2513,1408,1220,1096,1034,954],[4900,2501,1402,1215,1091,1029,950],[5000,2490,1396,1209,1086,1025,946],[5100,2479,1390,1204,1081,1020,942],[5200,2468,1384,1199,1077,1016,938],[5300,2457,1378,1193,1072,1012,934],[5400,2446,1371,1188,1067,1007,929],[5500,2435,1365,1183,1062,1003,925],[5600,2423,1359,1177,1058,998,921],[5700,2412,1353,1172,1053,994,917],[5800,2401,1347,1167,1048,989,913],[5900,2390,1341,1162,1043,985,909],[6000,2379,1334,1156,1039,980,905],[6100,2368,1328,1151,1034,976,901],[6200,2357,1322,1146,1029,971,897],[6300,2345,1316,1140,1024,967,893],[6400,2334,1310,1135,1020,962,889],[6500,2323,1304,1130,1015,958,884],[6600,2312,1297,1124,1010,953,880],[6700,2301,1291,1119,1005,949,876],[6800,2290,1285,1114,1001,944,872],[6900,2279,1279,1109,996,940,868],[7000,2268,1273,1103,991,935,864],[7100,2256,1267,1098,987,931,860],[7200,2245,1260,1093,982,926,856],[7300,2234,1254,1087,977,922,852],[7400,2223,1248,1082,972,918,848],[7500,2212,1242,1077,968,913,844],[7600,2201,1236,1071,963,909,839],[7700,2190,1230,1066,958,904,835],[7800,2178,1223,1061,953,900,831],[7900,2167,1217,1056,949,895,827],[8000,2156,1211,1050,944,891,823],[8100,2145,1205,1045,939,886,819],[8200,2134,1199,1040,934,882,815],[8300,2123,1193,1034,930,877,811],[8400,2112,1186,1029,925,873,807],[8500,2100,1180,1024,920,868,803],[8600,2089,1174,1018,915,864,798],[8700,2078,1168,1013,911,859,794]]},{"n":"GTR Sporty","o":26930000,"p":75000,"r":[[2200,2963,1667,1442,1291,1218,1122],[2300,2952,1661,1436,1286,1213,1118],[2400,2941,1655,1431,1281,1209,1114],[2500,2930,1648,1426,1277,1204,1110],[2600,2919,1642,1420,1272,1200,1106],[2700,2908,1636,1415,1267,1196,1102],[2800,2897,1630,1410,1262,1191,1098],[2900,2885,1624,1404,1258,1187,1094],[3000,2874,1618,1399,1253,1182,1090],[3100,2863,1611,1394,1248,1178,1086],[3200,2852,1605,1388,1243,1173,1082],[3300,2841,1599,1383,1239,1169,1077],[3400,2830,1593,1378,1234,1164,1073],[3500,2819,1587,1373,1229,1160,1069],[3600,2808,1580,1367,1224,1155,1065],[3700,2797,1574,1362,1220,1151,1061],[3800,2786,1568,1357,1215,1146,1057],[3900,2774,1562,1351,1210,1142,1053],[4000,2763,1556,1346,1205,1137,1049],[4100,2752,1550,1341,1201,1133,1045],[4200,2741,1543,1335,1196,1128,1041],[4300,2730,1537,1330,1191,1124,1037],[4400,2719,1531,1325,1187,1120,1033],[4500,2708,1525,1320,1182,1115,1028],[4600,2697,1519,1314,1177,1111,1024],[4700,2686,1513,1309,1172,1106,1020],[4800,2674,1506,1304,1168,1102,1016],[4900,2663,1500,1298,1163,1097,1012],[5000,2652,1494,1293,1158,1093,1008],[5100,2641,1488,1288,1153,1088,1004],[5200,2630,1482,1282,1149,1084,1000],[5300,2619,1475,1277,1144,1079,996],[5400,2608,1469,1272,1139,1075,992],[5500,2597,1463,1266,1134,1070,988],[5600,2586,1457,1261,1130,1066,984],[5700,2575,1451,1256,1125,1061,979],[5800,2563,1445,1251,1120,1057,975],[5900,2552,1438,1245,1115,1053,971],[6000,2541,1432,1240,1111,1048,967],[6100,2530,1426,1235,1106,1044,963],[6200,2519,1420,1229,1101,1039,959],[6300,2508,1414,1224,1097,1035,955],[6400,2497,1408,1219,1092,1030,951],[6500,2486,1401,1213,1087,1026,947],[6600,2475,1395,1208,1082,1021,943],[6700,2464,1389,1203,1078,1017,939],[6800,2452,1383,1198,1073,1012,934],[6900,2441,1377,1192,1068,1008,930],[7000,2430,1370,1187,1063,1003,926],[7100,2419,1364,1182,1059,999,922],[7200,2408,1358,1176,1054,994,918],[7300,2397,1352,1171,1049,990,914],[7400,2386,1346,1166,1044,985,910],[7500,2375,1340,1160,1040,981,906],[7600,2364,1333,1155,1035,977,902],[7700,2352,1327,1150,1030,972,898],[7800,2341,1321,1144,1026,968,894],[7900,2330,1315,1139,1021,963,890],[8000,2319,1309,1134,1016,959,885],[8100,2308,1303,1129,1011,954,881],[8200,2297,1296,1123,1007,950,877],[8300,2286,1290,1118,1002,945,873],[8400,2275,1284,1113,997,941,869],[8500,2264,1278,1107,992,936,865],[8600,2253,1272,1102,988,932,861],[8700,2241,1265,1097,983,927,857],[8800,2230,1259,1091,978,923,853]]},{"n":"GTR Exc","o":27180000,"p":75000,"r":[[2200,2998,1690,1463,1310,1237,1141],[2300,2987,1684,1457,1305,1232,1137],[2400,2976,1678,1452,1301,1228,1132],[2500,2965,1671,1447,1296,1223,1128],[2600,2954,1665,1441,1291,1219,1124],[2700,2942,1659,1436,1286,1214,1120],[2800,2931,1653,1431,1281,1210,1116],[2900,2920,1647,1425,1277,1205,1112],[3000,2909,1640,1420,1272,1201,1108],[3100,2898,1634,1415,1267,1196,1104],[3200,2887,1628,1409,1262,1192,1100],[3300,2876,1622,1404,1258,1187,1095],[3400,2865,1616,1399,1253,1183,1091],[3500,2853,1609,1393,1248,1178,1087],[3600,2842,1603,1388,1243,1174,1083],[3700,2831,1597,1383,1239,1169,1079],[3800,2820,1591,1377,1234,1165,1075],[3900,2809,1585,1372,1229,1160,1071],[4000,2798,1578,1367,1224,1156,1067],[4100,2787,1572,1361,1220,1151,1063],[4200,2776,1566,1356,1215,1147,1058],[4300,2764,1560,1351,1210,1142,1054],[4400,2753,1554,1345,1205,1138,1050],[4500,2742,1547,1340,1201,1133,1046],[4600,2731,1541,1335,1196,1129,1042],[4700,2720,1535,1329,1191,1124,1038],[4800,2709,1529,1324,1186,1120,1034],[4900,2698,1523,1319,1181,1115,1030],[5000,2686,1516,1313,1177,1111,1026],[5100,2675,1510,1308,1172,1106,1021],[5200,2664,1504,1303,1167,1102,1017],[5300,2653,1498,1297,1162,1097,1013],[5400,2642,1492,1292,1158,1093,1009],[5500,2631,1485,1287,1153,1088,1005],[5600,2620,1479,1281,1148,1084,1001],[5700,2609,1473,1276,1143,1079,997],[5800,2597,1467,1271,1139,1075,993],[5900,2586,1460,1265,1134,1070,989],[6000,2575,1454,1260,1129,1066,984],[6100,2564,1448,1255,1124,1061,980],[6200,2553,1442,1249,1120,1057,976],[6300,2542,1436,1244,1115,1052,972],[6400,2531,1429,1239,1110,1048,968],[6500,2520,1423,1234,1105,1043,964],[6600,2508,1417,1228,1101,1039,960],[6700,2497,1411,1223,1096,1034,956],[6800,2486,1405,1218,1091,1030,952],[6900,2475,1398,1212,1086,1025,947],[7000,2464,1392,1207,1081,1021,943],[7100,2453,1386,1202,1077,1016,939],[7200,2442,1380,1196,1072,1012,935],[7300,2431,1374,1191,1067,1007,931],[7400,2419,1367,1186,1062,1003,927],[7500,2408,1361,1180,1058,998,923],[7600,2397,1355,1175,1053,994,919],[7700,2386,1349,1170,1048,989,915],[7800,2375,1343,1164,1043,985,910],[7900,2364,1336,1159,1039,980,906],[8000,2353,1330,1154,1034,976,902],[8100,2341,1324,1148,1029,971,898],[8200,2330,1318,1143,1024,967,894],[8300,2319,1312,1138,1020,962,890],[8400,2308,1305,1132,1015,958,886],[8500,2297,1299,1127,1010,953,882],[8600,2286,1293,1122,1005,949,878],[8700,2275,1287,1116,1001,944,873],[8800,2264,1281,1111,996,940,869]]},{"n":"Vario 125 ISS","o":27220000,"p":125000,"r":[[2200,3005,1682,1456,1307,1234,1137],[2300,2994,1676,1451,1303,1229,1133],[2400,2983,1670,1445,1298,1225,1129],[2500,2972,1664,1440,1293,1220,1125],[2600,2961,1658,1435,1288,1216,1121],[2700,2950,1652,1429,1284,1211,1117],[2800,2938,1645,1424,1279,1207,1113],[2900,2927,1639,1419,1274,1202,1109],[3000,2916,1633,1413,1269,1198,1105],[3100,2905,1627,1408,1265,1193,1100],[3200,2894,1621,1403,1260,1189,1096],[3300,2883,1615,1398,1255,1184,1092],[3400,2872,1608,1392,1250,1180,1088],[3500,2860,1602,1387,1246,1175,1084],[3600,2849,1596,1382,1241,1171,1080],[3700,2838,1590,1376,1236,1167,1076],[3800,2827,1584,1371,1231,1162,1072],[3900,2816,1578,1366,1227,1158,1068],[4000,2805,1571,1360,1222,1153,1064],[4100,2794,1565,1355,1217,1149,1060],[4200,2782,1559,1350,1212,1144,1055],[4300,2771,1553,1345,1208,1140,1051],[4400,2760,1547,1339,1203,1135,1047],[4500,2749,1541,1334,1198,1131,1043],[4600,2738,1534,1329,1193,1126,1039],[4700,2727,1528,1323,1189,1122,1035],[4800,2716,1522,1318,1184,1117,1031],[4900,2705,1516,1313,1179,1113,1027],[5000,2693,1510,1308,1174,1108,1023],[5100,2682,1504,1302,1170,1104,1019],[5200,2671,1497,1297,1165,1099,1014],[5300,2660,1491,1292,1160,1095,1010],[5400,2649,1485,1286,1155,1090,1006],[5500,2638,1479,1281,1151,1086,1002],[5600,2627,1473,1276,1146,1081,998],[5700,2615,1467,1270,1141,1077,994],[5800,2604,1460,1265,1136,1072,990],[5900,2593,1454,1260,1132,1068,986],[6000,2582,1448,1255,1127,1064,982],[6100,2571,1442,1249,1122,1059,978],[6200,2560,1436,1244,1118,1055,974],[6300,2549,1430,1239,1113,1050,969],[6400,2537,1423,1233,1108,1046,965],[6500,2526,1417,1228,1103,1041,961],[6600,2515,1411,1223,1099,1037,957],[6700,2504,1405,1217,1094,1032,953],[6800,2493,1399,1212,1089,1028,949],[6900,2482,1393,1207,1084,1023,945],[7000,2471,1386,1202,1080,1019,941],[7100,2459,1380,1196,1075,1014,937],[7200,2448,1374,1191,1070,1010,933],[7300,2437,1368,1186,1065,1005,929],[7400,2426,1362,1180,1061,1001,924],[7500,2415,1356,1175,1056,996,920],[7600,2404,1349,1170,1051,992,916],[7700,2393,1343,1164,1046,987,912],[7800,2381,1337,1159,1042,983,908],[7900,2370,1331,1154,1037,978,904],[8000,2359,1325,1149,1032,974,900],[8100,2348,1319,1143,1027,969,896],[8200,2337,1312,1138,1023,965,892],[8300,2326,1306,1133,1018,961,888],[8400,2315,1300,1127,1013,956,884],[8500,2303,1294,1122,1008,952,879],[8600,2292,1288,1117,1004,947,875],[8700,2281,1282,1111,999,943,871],[8800,2270,1275,1106,994,938,867]]},{"n":"Vario 125 Street","o":27680000,"p":125000,"r":[[2300,3046,1705,1476,1325,1250,1153],[2400,3035,1699,1470,1320,1246,1149],[2500,3024,1693,1465,1316,1242,1145],[2600,3013,1687,1460,1311,1237,1141],[2700,3002,1681,1455,1306,1233,1136],[2800,2990,1674,1449,1301,1228,1132],[2900,2979,1668,1444,1297,1224,1128],[3000,2968,1662,1439,1292,1219,1124],[3100,2957,1656,1433,1287,1215,1120],[3200,2946,1650,1428,1282,1210,1116],[3300,2935,1644,1423,1278,1206,1112],[3400,2924,1637,1417,1273,1201,1108],[3500,2912,1631,1412,1268,1197,1104],[3600,2901,1625,1407,1263,1192,1100],[3700,2890,1619,1402,1259,1188,1096],[3800,2879,1613,1396,1254,1183,1091],[3900,2868,1607,1391,1249,1179,1087],[4000,2857,1600,1386,1244,1174,1083],[4100,2846,1594,1380,1240,1170,1079],[4200,2834,1588,1375,1235,1165,1075],[4300,2823,1582,1370,1230,1161,1071],[4400,2812,1576,1364,1225,1156,1067],[4500,2801,1570,1359,1221,1152,1063],[4600,2790,1563,1354,1216,1147,1059],[4700,2779,1557,1349,1211,1143,1055],[4800,2768,1551,1343,1206,1139,1050],[4900,2756,1545,1338,1202,1134,1046],[5000,2745,1539,1333,1197,1130,1042],[5100,2734,1533,1327,1192,1125,1038],[5200,2723,1526,1322,1188,1121,1034],[5300,2712,1520,1317,1183,1116,1030],[5400,2701,1514,1311,1178,1112,1026],[5500,2690,1508,1306,1173,1107,1022],[5600,2678,1502,1301,1169,1103,1018],[5700,2667,1496,1296,1164,1098,1014],[5800,2656,1489,1290,1159,1094,1010],[5900,2645,1483,1285,1154,1089,1005],[6000,2634,1477,1280,1150,1085,1001],[6100,2623,1471,1274,1145,1080,997],[6200,2612,1465,1269,1140,1076,993],[6300,2600,1459,1264,1135,1071,989],[6400,2589,1452,1258,1131,1067,985],[6500,2578,1446,1253,1126,1062,981],[6600,2567,1440,1248,1121,1058,977],[6700,2556,1434,1243,1116,1053,973],[6800,2545,1428,1237,1112,1049,969],[6900,2534,1422,1232,1107,1044,965],[7000,2523,1415,1227,1102,1040,960],[7100,2511,1409,1221,1097,1036,956],[7200,2500,1403,1216,1093,1031,952],[7300,2489,1397,1211,1088,1027,948],[7400,2478,1391,1205,1083,1022,944],[7500,2467,1385,1200,1078,1018,940],[7600,2456,1378,1195,1074,1013,936],[7700,2445,1372,1190,1069,1009,932],[7800,2433,1366,1184,1064,1004,928],[7900,2422,1360,1179,1059,1000,924],[8000,2411,1354,1174,1055,995,919],[8100,2400,1348,1168,1050,991,915],[8200,2389,1341,1163,1045,986,911],[8300,2378,1335,1158,1040,982,907],[8400,2367,1329,1153,1036,977,903],[8500,2355,1323,1147,1031,973,899],[8600,2344,1317,1142,1026,968,895],[8700,2333,1311,1137,1021,964,891],[8800,2322,1304,1131,1017,959,887],[8900,2311,1298,1126,1012,955,883]]},{"n":"ICON e","o":28154000,"p":0,"r":[[2300,3040,1737,1501,1347,1270,1169],[2400,3029,1731,1496,1342,1266,1165],[2500,3018,1724,1491,1337,1261,1161],[2600,3007,1718,1485,1333,1257,1157],[2700,2996,1712,1480,1328,1252,1153],[2800,2985,1706,1475,1323,1248,1149],[2900,2975,1700,1470,1318,1243,1145],[3000,2964,1694,1464,1314,1239,1141],[3100,2953,1688,1459,1309,1234,1137],[3200,2942,1681,1454,1304,1230,1133],[3300,2931,1675,1449,1300,1226,1129],[3400,2920,1669,1443,1295,1221,1125],[3500,2909,1663,1438,1290,1217,1121],[3600,2899,1657,1433,1285,1212,1117],[3700,2888,1651,1427,1281,1208,1113],[3800,2877,1645,1422,1276,1203,1109],[3900,2866,1639,1417,1271,1199,1105],[4000,2855,1632,1412,1267,1194,1100],[4100,2844,1626,1406,1262,1190,1096],[4200,2833,1620,1401,1257,1186,1092],[4300,2823,1614,1396,1252,1181,1088],[4400,2812,1608,1391,1248,1177,1084],[4500,2801,1602,1385,1243,1172,1080],[4600,2790,1596,1380,1238,1168,1076],[4700,2779,1589,1375,1234,1163,1072],[4800,2768,1583,1370,1229,1159,1068],[4900,2757,1577,1364,1224,1154,1064],[5000,2747,1571,1359,1219,1150,1060],[5100,2736,1565,1354,1215,1146,1056],[5200,2725,1559,1349,1210,1141,1052],[5300,2714,1553,1343,1205,1137,1048],[5400,2703,1547,1338,1201,1132,1044],[5500,2692,1540,1333,1196,1128,1040],[5600,2681,1534,1327,1191,1123,1036],[5700,2671,1528,1322,1186,1119,1031],[5800,2660,1522,1317,1182,1115,1027],[5900,2649,1516,1312,1177,1110,1023],[6000,2638,1510,1306,1172,1106,1019],[6100,2627,1504,1301,1168,1101,1015],[6200,2616,1497,1296,1163,1097,1011],[6300,2605,1491,1291,1158,1092,1007],[6400,2595,1485,1285,1153,1088,1003],[6500,2584,1479,1280,1149,1083,999],[6600,2573,1473,1275,1144,1079,995],[6700,2562,1467,1270,1139,1075,991],[6800,2551,1461,1264,1135,1070,987],[6900,2540,1454,1259,1130,1066,983],[7000,2529,1448,1254,1125,1061,979],[7100,2519,1442,1248,1121,1057,975],[7200,2508,1436,1243,1116,1052,971],[7300,2497,1430,1238,1111,1048,967],[7400,2486,1424,1233,1106,1043,963],[7500,2475,1418,1227,1102,1039,958],[7600,2464,1412,1222,1097,1035,954],[7700,2453,1405,1217,1092,1030,950],[7800,2443,1399,1212,1088,1026,946],[7900,2432,1393,1206,1083,1021,942],[8000,2421,1387,1201,1078,1017,938],[8100,2410,1381,1196,1073,1012,934],[8200,2399,1375,1191,1069,1008,930],[8300,2388,1369,1185,1064,1003,926],[8400,2377,1362,1180,1059,999,922],[8500,2366,1356,1175,1055,995,918],[8600,2356,1350,1169,1050,990,914],[8700,2345,1344,1164,1045,986,910],[8800,2334,1338,1159,1040,981,906],[8900,2323,1332,1154,1036,977,902]]},{"n":"Sonic 150 Red & Black","o":28180000,"p":140000,"r":[[2300,3110,1756,1522,1366,1290,1191],[2400,3099,1750,1517,1361,1286,1187],[2500,3088,1744,1512,1356,1281,1183],[2600,3077,1738,1506,1352,1277,1179],[2700,3066,1731,1501,1347,1272,1175],[2800,3055,1725,1496,1342,1268,1170],[2900,3043,1719,1490,1337,1263,1166],[3000,3032,1713,1485,1332,1258,1162],[3100,3021,1706,1480,1328,1254,1158],[3200,3010,1700,1474,1323,1249,1154],[3300,2999,1694,1469,1318,1245,1150],[3400,2988,1688,1464,1313,1240,1146],[3500,2977,1682,1458,1309,1236,1141],[3600,2966,1675,1453,1304,1231,1137],[3700,2954,1669,1448,1299,1227,1133],[3800,2943,1663,1442,1294,1222,1129],[3900,2932,1657,1437,1289,1218,1125],[4000,2921,1650,1431,1285,1213,1121],[4100,2910,1644,1426,1280,1209,1117],[4200,2899,1638,1421,1275,1204,1112],[4300,2888,1632,1415,1270,1200,1108],[4400,2876,1626,1410,1265,1195,1104],[4500,2865,1619,1405,1261,1191,1100],[4600,2854,1613,1399,1256,1186,1096],[4700,2843,1607,1394,1251,1182,1092],[4800,2832,1601,1389,1246,1177,1088],[4900,2821,1594,1383,1241,1172,1083],[5000,2810,1588,1378,1237,1168,1079],[5100,2798,1582,1373,1232,1163,1075],[5200,2787,1576,1367,1227,1159,1071],[5300,2776,1570,1362,1222,1154,1067],[5400,2765,1563,1356,1218,1150,1063],[5500,2754,1557,1351,1213,1145,1059],[5600,2743,1551,1346,1208,1141,1054],[5700,2732,1545,1340,1203,1136,1050],[5800,2720,1539,1335,1198,1132,1046],[5900,2709,1532,1330,1194,1127,1042],[6000,2698,1526,1324,1189,1123,1038],[6100,2687,1520,1319,1184,1118,1034],[6200,2676,1514,1314,1179,1114,1030],[6300,2665,1507,1308,1174,1109,1025],[6400,2654,1501,1303,1170,1105,1021],[6500,2642,1495,1298,1165,1100,1017],[6600,2631,1489,1292,1160,1096,1013],[6700,2620,1483,1287,1155,1091,1009],[6800,2609,1476,1282,1150,1087,1005],[6900,2598,1470,1276,1146,1082,1001],[7000,2587,1464,1271,1141,1077,996],[7100,2576,1458,1265,1136,1073,992],[7200,2564,1451,1260,1131,1068,988],[7300,2553,1445,1255,1126,1064,984],[7400,2542,1439,1249,1122,1059,980],[7500,2531,1433,1244,1117,1055,976],[7600,2520,1427,1239,1112,1050,972],[7700,2509,1420,1233,1107,1046,967],[7800,2498,1414,1228,1103,1041,963],[7900,2487,1408,1223,1098,1037,959],[8000,2475,1402,1217,1093,1032,955],[8100,2464,1395,1212,1088,1028,951],[8200,2453,1389,1207,1083,1023,947],[8300,2442,1383,1201,1079,1019,943],[8400,2431,1377,1196,1074,1014,938],[8500,2420,1371,1190,1069,1010,934],[8600,2409,1364,1185,1064,1005,930],[8700,2397,1358,1180,1059,1001,926],[8800,2386,1352,1174,1055,996,922],[8900,2375,1346,1169,1050,992,918]]},{"n":"Sonic 150 Matte Black","o":28580000,"p":140000,"r":[[2300,3155,1782,1545,1386,1309,1208],[2400,3144,1775,1539,1381,1304,1204],[2500,3133,1769,1534,1376,1300,1200],[2600,3122,1763,1528,1371,1295,1196],[2700,3111,1757,1523,1367,1291,1192],[2800,3100,1751,1518,1362,1286,1188],[2900,3089,1744,1512,1357,1282,1184],[3000,3077,1738,1507,1352,1277,1179],[3100,3066,1732,1502,1348,1273,1175],[3200,3055,1726,1496,1343,1268,1171],[3300,3044,1719,1491,1338,1264,1167],[3400,3033,1713,1486,1333,1259,1163],[3500,3022,1707,1480,1328,1255,1159],[3600,3011,1701,1475,1324,1250,1155],[3700,2999,1695,1470,1319,1246,1150],[3800,2988,1688,1464,1314,1241,1146],[3900,2977,1682,1459,1309,1236,1142],[4000,2966,1676,1453,1304,1232,1138],[4100,2955,1670,1448,1300,1227,1134],[4200,2944,1663,1443,1295,1223,1130],[4300,2933,1657,1437,1290,1218,1126],[4400,2922,1651,1432,1285,1214,1121],[4500,2910,1645,1427,1280,1209,1117],[4600,2899,1639,1421,1276,1205,1113],[4700,2888,1632,1416,1271,1200,1109],[4800,2877,1626,1411,1266,1196,1105],[4900,2866,1620,1405,1261,1191,1101],[5000,2855,1614,1400,1257,1187,1097],[5100,2844,1607,1395,1252,1182,1092],[5200,2832,1601,1389,1247,1178,1088],[5300,2821,1595,1384,1242,1173,1084],[5400,2810,1589,1379,1237,1169,1080],[5500,2799,1583,1373,1233,1164,1076]]}]};
+const POTONGAN = [["Beat Series",111000],["Scoopy & V160 Series",150000],["V125 & Stylo Series",125000],["Genio Series",100000],["PCX & ADV Series",180000],["Cub Series",75000],["Sport Series",140000]];
+const PO = [["BeAT 8%",20360000,1700000,1400000,800000,true],["BeAT",20360000,2100000,1600000,800000,false],["Genio",21300000,2200000,1600000,800000,false],["Scoopy",23940000,2400000,1600000,800000,false],["Vario 125",25420000,2600000,1800000,750000,false],["Vario Street 8%",27680000,2800000,1800000,1000000,true],["Vario 160",29010000,3000000,2000000,1000000,false],["Stylo",30020000,2500000,1200000,300000,false],["PCX",34960000,3500000,1900000,800000,false],["ADV",36900000,3700000,1900000,800000,false]];
+const STATUS = ["Baru","Prospek","Hot","Test Ride","Closing","Batal"];
+const SUMBER = ["Meta Ads","TikTok Ads","Google Ads","Organik IG","Organik TikTok","WhatsApp","Walk-in","Referral"];
+const KEY_LEADS = "sps.leads.v1", KEY_SET = "sps.settings.v1";
+
+/* ---------- penyimpanan (tahan terhadap storage yang diblokir) ---------- */
+const mem = {};
+const store = {
+  get(k, d){ try{ const v = localStorage.getItem(k); if(v!==null) return JSON.parse(v); }catch(e){} return (k in mem)? mem[k] : d; },
+  set(k, v){ mem[k] = v; try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
+};
+let leads = store.get(KEY_LEADS, []);
+let settings = Object.assign({cut:25000, useCut:true, dealer:"", sales:""}, store.get(KEY_SET, {}));
+const saveLeads = () => store.set(KEY_LEADS, leads);
+const saveSettings = () => store.set(KEY_SET, settings);
+
+/* ---------- util ---------- */
+const $ = (id) => document.getElementById(id);
+const rp = (n) => "Rp" + Math.round(n).toLocaleString("id-ID");
+const digits = (s) => String(s||"").replace(/\D/g,"");
+const esc = (s) => String(s==null?"":s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const pad = (n) => String(n).padStart(2,"0");
+const isoDate = (d) => d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate());
+const today = () => isoDate(new Date());
+const addDays = (n) => { const d = new Date(); d.setDate(d.getDate()+n); return isoDate(d); };
+const fmtDate = (iso) => { if(!iso) return ""; const [y,m,d] = iso.split("-"); const b=["Jan","Feb","Mar","Apr","Mei","Jun","Jul","Agu","Sep","Okt","Nov","Des"]; return +d+" "+b[+m-1]; };
+const slug = (s) => String(s).toLowerCase().replace(/[^a-z]/g,"");
+function waNumber(raw){
+  let d = digits(raw);
+  if(!d) return "";
+  if(d.startsWith("0")) d = "62"+d.slice(1);
+  else if(d.startsWith("8")) d = "62"+d;
+  return d;
+}
+let toastT;
+function toast(msg){ const t=$("toast"); t.textContent=msg; t.hidden=false; clearTimeout(toastT); toastT=setTimeout(()=>{t.hidden=true},2200); }
+async function copyText(text, okMsg){
+  try{ await navigator.clipboard.writeText(text); toast(okMsg); return; }catch(e){}
+  const ta = document.createElement("textarea"); ta.value = text; ta.style.position="fixed"; ta.style.opacity="0"; document.body.appendChild(ta); ta.select();
+  let ok=false; try{ ok = document.execCommand("copy"); }catch(e){}
+  ta.remove(); toast(ok? okMsg : "Gagal menyalin. Tekan lama teks lalu salin.");
+}
+
+/* ---------- inti hitungan ---------- */
+const TEN = DATA.tenor, MODELS = DATA.models;
+const modelByName = (n) => MODELS.find(m => m.n === n);
+function dpBounds(m){ return [m.r[0][0]*1000, m.r[m.r.length-1][0]*1000]; }
+function rowFor(m, dp){
+  const [lo, hi] = dpBounds(m);
+  let v = Math.min(Math.max(dp, lo), hi);
+  const k = Math.floor(v/100000+1e-9)*100;
+  return m.r.find(r => r[0] === k) || null;
+}
+function instAt(m, dp, tenor, useCut){
+  const row = rowFor(m, dp); if(!row) return null;
+  const i = TEN.indexOf(tenor); if(i<0) return null;
+  const base = row[1+i]*1000;
+  const cut = (useCut && (tenor===11 || tenor===23)) ? settings.cut : 0;
+  return { base, final: base-cut, cut, dp: row[0]*1000 };
+}
+
+/* ---------- state kalkulator ---------- */
+const calc = { model: MODELS[0].n, dp: 2500000 };
+let pickerOpen = false;
+function setPicker(open){ pickerOpen = open; $("pickcard").hidden = !open; renderTag(); if(open){ renderPicker(); setTimeout(()=>$("q").focus(), 30); } }
+function curModel(){ return modelByName(calc.model) || MODELS[0]; }
+
+function renderPicker(){
+  const q = slug($("q").value);
+  const list = MODELS.filter(m => !q || slug(m.n).includes(q));
+  $("plist").innerHTML = list.length ? list.map(m =>
+    `<button type="button" class="pick" role="listitem" data-m="${esc(m.n)}" aria-pressed="${m.n===calc.model}"><b>${esc(m.n)}</b><span>${rp(m.o)}</span></button>`
+  ).join("") : `<div class="muted small" style="grid-column:1/-1;padding:8px">Tipe tidak ditemukan. Vario 160, Stylo, PCX, dan ADV belum ada di data kalkulator.</div>`;
+}
+function renderTag(){
+  const m = curModel(), [lo,hi] = dpBounds(m);
+  $("tagcard").innerHTML = `<div class="row" style="justify-content:space-between;flex-wrap:nowrap;align-items:flex-start">
+      <div class="name grow">${esc(m.n)}</div>
+      <button type="button" class="btn sm" data-open="1" aria-expanded="${pickerOpen}">${pickerOpen? "Tutup" : "Ganti tipe"}</button></div>
+    <div class="meta">
+      <div><small>Harga OTR</small><b>${rp(m.o)}</b></div>
+      <div><small>Potongan max</small><b>${m.p? rp(m.p) : "-"}</b></div>
+    </div>`;
+  $("dprange").textContent = "DP di tabel: " + rp(lo) + " sampai " + rp(hi) + ", kelipatan Rp100.000.";
+}
+function renderDpChips(){
+  const m = curModel(), [lo,hi] = dpBounds(m);
+  const picks = [lo, 2000000, 2500000, 3000000, 4000000, 5000000].filter(v => v>=lo && v<=hi);
+  const uniq = [...new Set(picks)];
+  const cur = rowFor(m, calc.dp)[0]*1000;
+  $("dpchips").innerHTML = uniq.map(v => `<button type="button" class="chip" data-dp="${v}" aria-pressed="${v===cur}">${(v/1e6).toLocaleString("id-ID")} jt</button>`).join("");
+}
+function renderSched(){
+  const m = curModel(); const row = rowFor(m, calc.dp);
+  const use = settings.useCut;
+  $("sched").innerHTML = TEN.map((t,i) => {
+    const r = instAt(m, calc.dp, t, use);
+    const total = r.dp + r.final*t;
+    const cutLine = r.cut ? `<div class="cut">−${rp(r.cut)} <s>${rp(r.base)}</s></div>` : "";
+    return `<div class="r"><div class="ten">${t}<small>bulan</small></div>
+      <div class="amt"><div class="big">${rp(r.final)}</div>${cutLine}<div class="sub">total ${rp(total)}</div></div></div>`;
+  }).join("");
+}
+function renderDp(){
+  const m = curModel(), [lo,hi] = dpBounds(m);
+  const row = rowFor(m, calc.dp);
+  const shown = row[0]*1000;
+  const note = $("dpnote");
+  if(calc.dp !== shown){
+    note.hidden = false;
+    note.textContent = calc.dp < lo ? "DP di bawah minimum. Dihitung dengan DP "+rp(lo)+"."
+      : calc.dp > hi ? "DP di atas rentang tabel. Dihitung dengan DP "+rp(hi)+"."
+      : "DP dibulatkan ke "+rp(shown)+" (tabel memakai kelipatan Rp100.000).";
+  } else note.hidden = true;
+}
+function renderCalc(syncInput){
+  const m = curModel(); const row = rowFor(m, calc.dp);
+  if(syncInput) $("dp").value = Math.round(calc.dp).toLocaleString("id-ID");
+  renderPicker(); renderTag(); renderDp(); renderDpChips(); renderSched();
+  $("cut").checked = settings.useCut;
+  $("cutlbl").textContent = "Pengurang tenor 11 & 23 (−" + Math.round(settings.cut/1000) + " rb)";
+}
+function setModel(n){
+  calc.model = n; const m = curModel(), [lo,hi] = dpBounds(m);
+  calc.dp = Math.min(Math.max(calc.dp, lo), hi);
+  pickerOpen = false; $("pickcard").hidden = true; $("q").value = "";
+  renderCalc(true);
+}
+function waText(m, dp, tenor){
+  const r = instAt(m, dp, tenor, settings.useCut);
+  const d = settings.dealer ? settings.dealer : "dealer kami";
+  return `Halo Kak, berikut simulasi kredit ${m.n} dari ${d}:\n\nHarga OTR: ${rp(m.o)}\nDP: ${rp(r.dp)}\nAngsuran tenor ${tenor} bulan: ${rp(r.final)}/bulan\n\nEstimasi, dapat berubah sesuai ketentuan leasing. S&K berlaku.\nBoleh tahu rencana beli cash atau kredit, Kak?`;
+}
+
+/* ---------- leads ---------- */
+let filter = "Semua", editingId = null, waLeadId = null;
+const FILTERS = ["Semua","Hari ini","Prospek","Hot","Test Ride","Closing"];
+function isDue(l){ return l.fu && l.fu <= today() && l.status!=="Closing" && l.status!=="Batal"; }
+function matchFilter(l){
+  if(filter==="Semua") return true;
+  if(filter==="Hari ini") return isDue(l);
+  return l.status===filter;
+}
+function renderFilters(){
+  const due = leads.filter(isDue).length;
+  $("lfilter").innerHTML = FILTERS.map(f => `<button type="button" class="chip" data-f="${f}" aria-pressed="${f===filter}">${f}${f==="Hari ini" && due? ` <b>${due}</b>`:""}</button>`).join("");
+  const b = $("lbadge"); b.hidden = !due; b.textContent = due;
+}
+function leadCard(l, sample){
+  const m = modelByName(l.model);
+  let est = "";
+  if(m && l.tipe==="Kredit"){ const r = instAt(m, l.dp||0, l.tenor||35, settings.useCut); if(r) est = ` · ${l.tenor||35} bln ≈ ${rp(r.final)}`; }
+  let fu = "";
+  if(l.fu){
+    const cls = l.fu < today() ? "late" : l.fu === today() ? "today" : "";
+    const txt = l.fu < today() ? "Terlambat · "+fmtDate(l.fu) : l.fu === today() ? "Follow-up hari ini" : "Follow-up "+fmtDate(l.fu);
+    fu = `<span class="pill ${cls}">${txt}</span>`;
+  }
+  const sc = slug(l.status);
+  return `<article class="card lead ${sample?"sample":""}" ${sample?"":`data-id="${l.id}"`}>
+    ${sample?`<div class="ex">Contoh tampilan</div>`:""}
+    <div class="head"><div class="grow"><div class="nm">${esc(l.nama||"Tanpa nama")}</div>
+      <div class="line">${esc(l.model||"-")}${l.tipe==="Cash"?" · Cash": (l.dp? " · DP "+rp(l.dp):"")}${est}</div></div>
+      <span class="pill ${sc}">${esc(l.status)}</span></div>
+    <div class="row">${fu}${l.sumber?`<span class="pill">${esc(l.sumber)}</span>`:""}</div>
+    ${l.cat?`<div class="line">${esc(l.cat)}</div>`:""}
+    ${sample?"":`<div class="actions">
+      <button type="button" class="btn wa sm" data-act="wa" data-id="${l.id}">WhatsApp</button>
+      <button type="button" class="btn sm" data-act="edit" data-id="${l.id}">Ubah</button>
+      <button type="button" class="btn sm" data-act="done" data-id="${l.id}">Follow-up +3 hari</button></div>`}
+  </article>`;
+}
+function renderLeads(){
+  renderFilters();
+  const q = $("lsearch").value.trim().toLowerCase(), qd = digits(q);
+  const list = leads.filter(matchFilter).filter(l => !q || (l.nama||"").toLowerCase().includes(q) || (qd && digits(l.wa).includes(qd)))
+    .sort((a,b)=> (a.fu||"9999").localeCompare(b.fu||"9999") || b.id-a.id);
+  const box = $("llist");
+  if(!leads.length){
+    box.innerHTML = `<div class="card empty"><b>Belum ada lead</b><div class="muted small">Catat calon pembeli dari chat, telepon, atau showroom. Tekan "+ Lead baru", atau hitung simulasi di tab Kalkulator lalu tekan "Simpan jadi lead".</div></div>` +
+      leadCard({nama:"Budi",model:"Beat eSP CBS",dp:2100000,tenor:35,tipe:"Kredit",sumber:"Meta Ads",status:"Prospek",fu:today(),cat:"Tanya angsuran 35 bulan, warna hitam"}, true);
+  } else if(!list.length){
+    box.innerHTML = `<div class="card empty"><b>Tidak ada hasil</b><div class="muted small">Ubah filter atau kata pencarian.</div></div>`;
+  } else box.innerHTML = list.map(l => leadCard(l,false)).join("");
+}
+
+function fillSelect(id, arr, val){ $(id).innerHTML = arr.map(x => `<option${x===val?" selected":""}>${esc(x)}</option>`).join(""); }
+function openForm(id, preset){
+  editingId = id || null;
+  const l = id ? leads.find(x=>x.id===id) : Object.assign({nama:"",wa:"",model:calc.model,dp:calc.dp,tenor:35,tipe:"Kredit",sumber:"WhatsApp",status:"Baru",fu:addDays(1),cat:""}, preset||{});
+  $("lform-title").textContent = id ? "Ubah lead" : "Lead baru";
+  $("f-nama").value = l.nama||""; $("f-wa").value = l.wa||"";
+  fillSelect("f-model", MODELS.map(m=>m.n), l.model);
+  $("f-dp").value = l.dp ? Math.round(l.dp).toLocaleString("id-ID") : "";
+  fillSelect("f-tenor", TEN.map(String), String(l.tenor||35));
+  $("f-tipe").value = l.tipe||"Kredit";
+  fillSelect("f-sumber", SUMBER, l.sumber); fillSelect("f-status", STATUS, l.status);
+  $("f-fu").value = l.fu||""; $("f-cat").value = l.cat||"";
+  $("f-del").hidden = !id; $("f-err").hidden = true; delArmed = false; $("f-del").textContent = "Hapus lead ini";
+  $("sh-lead").hidden = false; setTimeout(()=>$("f-nama").focus(), 50);
+}
+let delArmed = false;
+function closeForm(){ $("sh-lead").hidden = true; editingId = null; }
+function submitForm(e){
+  e.preventDefault();
+  const nama = $("f-nama").value.trim(), wa = $("f-wa").value.trim();
+  const err = $("f-err");
+  if(!nama && !wa){ err.hidden=false; err.textContent="Isi nama atau nomor WhatsApp."; return; }
+  const obj = { nama, wa, model:$("f-model").value, dp:+digits($("f-dp").value)||0, tenor:+$("f-tenor").value, tipe:$("f-tipe").value,
+    sumber:$("f-sumber").value, status:$("f-status").value, fu:$("f-fu").value, cat:$("f-cat").value.trim() };
+  if(editingId){ const i = leads.findIndex(x=>x.id===editingId); leads[i] = Object.assign({}, leads[i], obj); }
+  else leads.unshift(Object.assign({id:Date.now(), created:today()}, obj));
+  saveLeads(); closeForm(); renderLeads(); toast("Lead tersimpan");
+}
+
+/* template WhatsApp */
+function templates(l){
+  const m = modelByName(l.model); const nm = l.nama ? " "+l.nama : "";
+  const dealer = settings.dealer || "dealer kami", sales = settings.sales || "tim sales";
+  const r = m ? instAt(m, l.dp||0, l.tenor||35, settings.useCut) : null;
+  const angs = r ? `${rp(r.final)}/bulan tenor ${l.tenor||35} bulan` : "silakan kami hitungkan";
+  const dpTxt = r ? rp(r.dp) : "DP yang nyaman";
+  const mod = l.model || "motor impian Kakak";
+  return [
+    ["Sapaan pertama", `Halo Kak${nm}, terima kasih sudah menghubungi ${dealer} 🙏\nSaya ${sales}. Kakak tertarik dengan ${mod}, ya?\nBiar saya bantu hitungkan, boleh tahu:\n1. Rencana beli cash atau kredit?\n2. Perkiraan DP yang nyaman berapa?`],
+    ["Kirim simulasi", `Baik Kak${nm}. Untuk ${mod} dengan DP ${dpTxt}, estimasi angsuran sekitar ${angs} (perkiraan, angka resmi menyesuaikan leasing). S&K berlaku.\nMau saya kirimkan simulasi beberapa tenor lainnya?`],
+    ["Follow-up H+1", `Selamat pagi Kak${nm} 😊\nKemarin sempat tanya ${mod}. Saya bisa kirim foto warna yang ready kalau Kakak mau. Kakak lebih suka warna yang mana?`],
+    ["Ajak test ride H+3", `Halo Kak${nm}, kalau masih mempertimbangkan ${mod}, bisa coba langsung lewat test ride gratis di ${dealer}.\nKakak lebih nyaman hari apa dan jam berapa?`],
+    ["Follow-up H+7", `Halo Kak${nm}, saya ${sales} dari ${dealer}. Kalau Kakak masih berminat ${mod}, saya bisa bantu simulasi ulang sesuai budget terbaru.\nKalau belum waktunya, tidak apa-apa, kabari saya kapan saja ya 🙏`],
+    ["Reminder test ride", `Halo Kak${nm}, mengingatkan jadwal test ride ${mod} besok di ${dealer}. Mohon bawa KTP dan SIM C. Kalau ada perubahan jadwal, kabari saya ya.`],
+  ];
+}
+function openWa(id){
+  const l = leads.find(x=>x.id===id); if(!l) return;
+  waLeadId = id;
+  $("wa-sub").textContent = (l.nama||"Tanpa nama") + (l.wa? " · "+l.wa : " · belum ada nomor WhatsApp");
+  $("wa-list").innerHTML = templates(l).map((t,i) => `<button type="button" class="tpl" data-i="${i}"><b>${esc(t[0])}</b><span>${esc(t[1])}</span></button>`).join("");
+  $("sh-wa").hidden = false;
+}
+function sendWa(i){
+  const l = leads.find(x=>x.id===waLeadId); if(!l) return;
+  const num = waNumber(l.wa); const text = templates(l)[i][1];
+  if(!num){ copyText(text, "Belum ada nomor. Pesan disalin."); return; }
+  window.open("https://wa.me/"+num+"?text="+encodeURIComponent(text), "_blank", "noopener");
+  $("sh-wa").hidden = true;
+}
+
+/* ---------- info ---------- */
+function renderInfo(){
+  $("s-cut").value = Math.round(settings.cut).toLocaleString("id-ID");
+  $("s-dealer").value = settings.dealer; $("s-sales").value = settings.sales;
+  $("t-series").innerHTML = `<tr><th>Series</th><th>Potongan max</th></tr>` + POTONGAN.map(p => `<tr><td>${esc(p[0])}</td><td class="num">${rp(p[1])}</td></tr>`).join("");
+  $("t-po").innerHTML = `<tr><th>Program</th><th>OTR</th><th>DP PO</th><th>Subs</th><th>Bayar</th><th>Cash</th></tr>` +
+    PO.map(p => `<tr><td>${esc(p[0])}</td><td class="num">${(p[1]/1e6).toLocaleString("id-ID")} jt</td><td class="num">${(p[2]/1e6).toLocaleString("id-ID")} jt</td><td class="num">${(p[3]/1e6).toLocaleString("id-ID")} jt</td><td class="num">${((p[2]-p[3])/1e6).toLocaleString("id-ID")} jt</td><td class="num">${(p[4]/1e6).toLocaleString("id-ID")} jt</td></tr>`).join("");
+  const last = MODELS[MODELS.length-1];
+  $("datanote").textContent = MODELS.length + " model dari kalkulator SPS. Tabel " + last.n + " baru sampai DP " + rp(dpBounds(last)[1]) + ", dan Vario 160, Stylo, PCX, ADV belum ada karena file sumber terpotong. ICON e tidak punya potongan di sumber. Semua angsuran adalah estimasi.";
+}
+function leadsCsv(){
+  const cols = ["nama","wa","model","dp","tenor","tipe","sumber","status","fu","cat","created"];
+  const q = v => '"' + String(v==null?"":v).replace(/"/g,'""') + '"';
+  return [cols.join(",")].concat(leads.map(l => cols.map(c => q(l[c])).join(","))).join("\n");
+}
+
+/* ---------- tab ---------- */
+function showTab(t){
+  ["calc","leads","info"].forEach(k => {
+    $("p-"+k).hidden = k!==t; $("t-"+k).setAttribute("aria-selected", String(k===t));
+  });
+  $("main").scrollTop = 0;
+  if(t==="leads") renderLeads(); if(t==="info") renderInfo();
+  try{ history.replaceState(null,"","#"+t); }catch(e){}
+}
+
+/* ---------- event ---------- */
+function bind(){
+  document.querySelectorAll("nav.tabs button").forEach(b => b.addEventListener("click", () => showTab(b.dataset.tab)));
+  $("q").addEventListener("input", renderPicker);
+  $("tagcard").addEventListener("click", e => { if(e.target.closest("[data-open]")) setPicker(!pickerOpen); });
+  $("plist").addEventListener("click", e => { const b = e.target.closest("[data-m]"); if(b) setModel(b.dataset.m); });
+  $("dpchips").addEventListener("click", e => { const b = e.target.closest("[data-dp]"); if(b){ calc.dp = +b.dataset.dp; renderCalc(true); } });
+  const stepDp = d => { const m = curModel(), [lo,hi] = dpBounds(m); const cur = rowFor(m, calc.dp)[0]*1000; calc.dp = Math.min(Math.max(cur+d, lo), hi); renderCalc(true); };
+  $("dpm").addEventListener("click", () => stepDp(-100000));
+  $("dpp").addEventListener("click", () => stepDp(100000));
+  $("dp").addEventListener("input", () => { const v = +digits($("dp").value); calc.dp = v; const m=curModel(); renderDp(); renderDpChips(); renderSched(); });
+  $("dp").addEventListener("blur", () => { $("dp").value = Math.round(calc.dp||0).toLocaleString("id-ID"); });
+  $("cut").addEventListener("change", () => { settings.useCut = $("cut").checked; saveSettings(); renderSched(); });
+  $("sendwa").addEventListener("click", () => {
+    const m = curModel(); const text = waText(m, calc.dp, 35);
+    window.open("https://wa.me/?text="+encodeURIComponent(text), "_blank", "noopener");
+  });
+  $("tolead").addEventListener("click", () => { showTab("leads"); openForm(null, {model:calc.model, dp: rowFor(curModel(), calc.dp)[0]*1000}); });
+
+  $("addlead").addEventListener("click", () => openForm(null));
+  $("lfilter").addEventListener("click", e => { const b = e.target.closest("[data-f]"); if(b){ filter = b.dataset.f; renderLeads(); } });
+  $("lsearch").addEventListener("input", renderLeads);
+  $("llist").addEventListener("click", e => {
+    const b = e.target.closest("[data-act]"); if(!b) return; const id = +b.dataset.id;
+    if(b.dataset.act==="edit") openForm(id);
+    if(b.dataset.act==="wa") openWa(id);
+    if(b.dataset.act==="done"){ const l = leads.find(x=>x.id===id); l.fu = addDays(3); if(l.status==="Baru") l.status="Prospek"; saveLeads(); renderLeads(); toast("Follow-up berikutnya "+fmtDate(l.fu)); }
+  });
+  $("lform").addEventListener("submit", submitForm);
+  $("f-cancel").addEventListener("click", closeForm);
+  $("f-dp").addEventListener("blur", () => { const v = +digits($("f-dp").value); $("f-dp").value = v? v.toLocaleString("id-ID") : ""; });
+  $("f-del").addEventListener("click", () => {
+    if(!delArmed){ delArmed = true; $("f-del").textContent = "Tekan lagi untuk menghapus"; return; }
+    leads = leads.filter(x => x.id !== editingId); saveLeads(); closeForm(); renderLeads(); toast("Lead dihapus");
+  });
+  $("sh-lead").addEventListener("click", e => { if(e.target.id==="sh-lead") closeForm(); });
+  $("sh-wa").addEventListener("click", e => { if(e.target.id==="sh-wa") $("sh-wa").hidden = true; });
+  $("wa-close").addEventListener("click", () => $("sh-wa").hidden = true);
+  $("wa-list").addEventListener("click", e => { const b = e.target.closest("[data-i]"); if(b) sendWa(+b.dataset.i); });
+
+  $("s-cut").addEventListener("input", () => { settings.cut = +digits($("s-cut").value)||0; saveSettings(); renderSched(); $("cutlbl").textContent = "Pengurang tenor 11 & 23 (−" + Math.round(settings.cut/1000) + " rb)"; });
+  $("s-cut").addEventListener("blur", () => { $("s-cut").value = Math.round(settings.cut).toLocaleString("id-ID"); });
+  $("s-dealer").addEventListener("input", () => { settings.dealer = $("s-dealer").value.trim(); saveSettings(); });
+  $("s-sales").addEventListener("input", () => { settings.sales = $("s-sales").value.trim(); saveSettings(); });
+  $("b-csv").addEventListener("click", () => leads.length ? copyText(leadsCsv(), "CSV disalin. Tempel ke Excel atau catatan.") : toast("Belum ada lead"));
+  $("b-json").addEventListener("click", () => leads.length ? copyText(JSON.stringify({v:1, leads}), "Cadangan disalin") : toast("Belum ada lead"));
+  let wipeArmed = false;
+  $("b-restore").addEventListener("click", () => {
+    try{
+      const o = JSON.parse($("b-text").value.trim());
+      if(!o || !Array.isArray(o.leads)) throw 0;
+      const ids = new Set(leads.map(l=>l.id)); let n = 0;
+      o.leads.forEach(l => { if(l && !ids.has(l.id)){ leads.push(l); n++; } });
+      saveLeads(); renderLeads(); $("b-text").value=""; toast(n+" lead dipulihkan");
+    }catch(e){ toast("Teks cadangan tidak valid"); }
+  });
+  $("b-wipe").addEventListener("click", () => {
+    if(!wipeArmed){ wipeArmed = true; $("b-wipe").textContent = "Tekan lagi untuk menghapus semua"; setTimeout(()=>{wipeArmed=false; $("b-wipe").textContent="Hapus semua lead";}, 4000); return; }
+    leads = []; saveLeads(); wipeArmed=false; $("b-wipe").textContent="Hapus semua lead"; renderLeads(); toast("Semua lead dihapus");
+  });
+}
+
+bind();
+renderCalc(true);
+renderLeads();
+const h = (location.hash||"").replace("#","");
+if(["calc","leads","info"].includes(h)) showTab(h);
+try{ if("serviceWorker" in navigator && /^https?:$/.test(location.protocol)) navigator.serviceWorker.register("sw.js").catch(()=>{}); }catch(e){}
+</script>
+</body>
+</html>
